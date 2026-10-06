@@ -9,8 +9,8 @@ Features
 - Web browsing powered by Chromium.
 - Desktop interface built with Electron.
 - Tabbed browsing.
-- Simple and lightweight design.
-- Modern and easy-to-use interface.
+- Minimalist and lightweight design.
+- Simple and easy-to-use interface.
 
 Technologies
 
