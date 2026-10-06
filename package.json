@@ -1,0 +1,46 @@
+{
+  "name": "chorus-browser",
+  "version": "1.0.0",
+  "description": "Still Browser",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron .",
+    "dist": "electron-builder --win"
+  },
+  "keywords": [],
+  "author": "Still Browser",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@ghostery/adblocker-electron": "^2.18.2",
+    "electron-chrome-extensions": "^4.9.0"
+  },
+  "devDependencies": {
+    "electron": "^44.5.1",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "com.chorus.browser",
+    "productName": "Still Browser",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!extensions-off/**",
+      "!dist/**",
+      "!**/*.antes-*",
+      "!**/*.bak"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  },
+  "productName": "Still Browser"
+}

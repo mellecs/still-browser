@@ -1,0 +1,439 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Still Browser</title>
+  <style>
+    body {
+      margin: 0;
+      background: #1a1a1a;
+      font-family: sans-serif;
+      overflow: hidden;
+    }
+    #tabbar {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      height: 40px;
+      padding: 0 8px;
+      box-sizing: border-box;
+      background: #121212;
+    }
+    #tabs {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex: 0 1 auto;
+      min-width: 0;
+      overflow: hidden;
+    }
+    .tab {
+      display: flex;
+      align-items: center;
+      flex: 0 1 240px;
+      min-width: 40px;
+      height: 28px;
+      padding: 0 6px 0 10px;
+      box-sizing: border-box;
+      border-radius: 8px;
+      background: #202020;
+      color: #aaaaaa;
+      font-size: 13px;
+      cursor: pointer;
+      overflow: hidden;
+    }
+    .tab:hover { background: #262626; }
+    .tab.active { background: #333333; color: #eeeeee; min-width: 90px; }
+    .tab-icon {
+      flex: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      margin-right: 8px;
+    }
+    .tab-icon img {
+      width: 16px;
+      height: 16px;
+      border-radius: 3px;
+      object-fit: contain;
+    }
+    .tab-icon svg, .tab-audio svg {
+      width: 14px;
+      height: 14px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .tab-audio {
+      flex: none;
+      display: flex;
+      align-items: center;
+      margin: 0 4px;
+      color: #cccccc;
+    }
+    .tab-title {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .tab.narrow { padding: 0; justify-content: center; }
+    .tab.narrow .tab-title, .tab.narrow .tab-audio { display: none; }
+    .tab.narrow .tab-icon { margin-right: 0; }
+    .tab.narrow .tab-close { display: none; }
+    .tab.narrow:hover .tab-icon { display: none; }
+    .tab.narrow:hover .tab-close { display: flex; }
+    .tab-close, #newtab {
+      flex: none;
+      border: none;
+      background: transparent;
+      color: #aaaaaa;
+      cursor: pointer;
+    }
+    .tab-close {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      padding: 0;
+      border-radius: 50%;
+    }
+    .tab-close svg {
+      width: 10px;
+      height: 10px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.4;
+      stroke-linecap: round;
+    }
+    .tab-close:hover { background: #4a4a4a; color: #ffffff; }
+    #newtab {
+      width: 28px;
+      height: 28px;
+      font-size: 18px;
+      border-radius: 6px;
+    }
+    #newtab:hover { background: #3a3a3a; color: #ffffff; }
+    #toolbar {
+      display: grid;
+      grid-template-columns: 1fr minmax(0, 480px) 1fr;
+      align-items: center;
+      column-gap: 12px;
+      height: 44px;
+      background: #121212;
+      padding: 0 8px;
+      box-sizing: border-box;
+    }
+    #nav {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    #right {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    #toolbar button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      color: #cccccc;
+      cursor: pointer;
+    }
+    #toolbar button:hover { background: #2a2a2a; color: #ffffff; }
+    #toolbar svg {
+      width: 18px;
+      height: 18px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    #address {
+      width: 100%;
+      height: 30px;
+      border: none;
+      border-radius: 15px;
+      background: #2a2a2a;
+      color: #eeeeee;
+      padding: 0 14px;
+      box-sizing: border-box;
+      font-size: 13px;
+      text-align: center;
+      outline: none;
+    }
+    #address:focus { background: #333333; }
+      #tabbar { padding-right: 150px; -webkit-app-region: drag; }
+    #tabs, #newtab { -webkit-app-region: no-drag; }
+      /* modo compacto */
+    #tabbar { height: 32px; }
+    .tab { height: 24px; font-size: 12px; }
+    #newtab { width: 24px; height: 24px; font-size: 16px; }
+    #toolbar { height: 36px; }
+    #toolbar button { width: 28px; height: 28px; }
+    #toolbar svg { width: 16px; height: 16px; }
+    #address { height: 26px; border-radius: 13px; font-size: 12px; }
+      /* pestañas más grandes */
+    .tab { height: 28px; font-size: 13px; }
+    .tab-icon { width: 18px; height: 18px; }
+    .tab-icon img { width: 18px; height: 18px; }
+    .tab-icon svg { width: 16px; height: 16px; }
+    #newtab { width: 28px; height: 28px; font-size: 18px; }
+      /* pestañas más anchas */
+    .tab { flex: 0 1 300px; }
+    .tab.active { min-width: 120px; }
+      /* borde azul al escribir */
+    #address:focus { background: #2a2a2a; box-shadow: 0 0 0 2px #5b9bff; }
+      /* paleta oscura estilo Firefox */
+    body { background: #1c1b22; }
+    #tabbar { background: #1c1b22; }
+    .tab { background: transparent; color: #cfcfd8; }
+    .tab:hover { background: #2b2a33; }
+    .tab.active { background: #42414d; color: #fbfbfe; }
+    #toolbar { background: #2b2a33; }
+    #toolbar button { color: #fbfbfe; }
+    #toolbar button:hover { background: #42414d; }
+    #address { background: #1c1b22; color: #fbfbfe; }
+    #address:focus { background: #1c1b22; box-shadow: 0 0 0 2px #5b9bff; }
+      /* paleta oscura neutra */
+    body { background: #1e1f22; }
+    #tabbar { background: #1e1f22; }
+    .tab { background: transparent; color: #c4c7c5; }
+    .tab:hover { background: #292a2d; }
+    .tab.active { background: #35363a; color: #ffffff; }
+    #toolbar { background: #292a2d; }
+    #toolbar button { color: #e3e3e3; }
+    #toolbar button:hover { background: #3a3b3f; }
+    #address { background: #1e1f22; color: #ffffff; }
+    #address:focus { background: #1e1f22; box-shadow: 0 0 0 2px #5b9bff; }
+      /* barra más rectangular */
+    #address { border-radius: 8px; }
+      /* tipografía */
+    body, input, button { font-family: 'Segoe UI', system-ui, sans-serif; }
+      /* tipografía */
+    body, input, button { font-family: 'Segoe UI', system-ui, sans-serif; }
+      /* estilo de pestaña de la captura */
+    .tab { border-radius: 6px; padding: 0 8px 0 10px; }
+    .tab:hover { background: #2f3033; }
+    .tab.active { background: #3c3d40; color: #f1f3f4; }
+    .tab.active:hover { background: #3c3d40; }
+    .tab-close { color: #c4c7c5; }
+    .tab-close:hover { background: #55565a; color: #ffffff; }
+      /* pestañas anchas y barra alta */
+    #tabbar { height: 40px !important; }
+    #tabs { flex: 0 1 auto !important; }
+    .tab { flex: 0 1 380px !important; height: 32px !important; }
+    .tab.active { min-width: 140px !important; }
+    #newtab { width: 32px; height: 32px; }
+    .tab-close { width: 20px; height: 20px; }
+    .tab-close svg { width: 12px; height: 12px; stroke-width: 1.7; }
+    .tab-close:hover { background: #4a4b4f; }
+      /* ancho real de las pestañas */
+    .tab { width: 211px !important; flex: 0 1 211px !important; }
+      /* iconos regordetes y altavoz junto al icono */
+    .tab-audio { margin: 0 6px 0 0; }
+    .tab-close svg { width: 12px; height: 12px; stroke-width: 3.2; stroke-linecap: round; }
+    #newtab { display: flex; align-items: center; justify-content: center; padding: 0; color: #c4c7c5; }
+    #newtab svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 3.2; stroke-linecap: round; }
+      /* altavoz clicable */
+    .tab-audio { justify-content: center; width: 20px; height: 20px; padding: 0; border: none; border-radius: 50%; background: transparent; cursor: pointer; }
+    .tab-audio:hover { background: #4a4b4f; color: #ffffff; }
+        /* modo compacto (menú) */
+    body.compact .tab { width: 150px !important; flex: 0 1 150px !important; height: 28px !important; font-size: 12px; }
+    body.compact #toolbar button { width: 28px; height: 28px; }
+    body.compact #toolbar svg { width: 16px; height: 16px; }
+    body.compact #address { height: 26px; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div id="tabbar">
+    <div id="tabs"></div>
+    <button id="newtab" title="Nueva pestaña"><svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
+  </div>
+  <div id="toolbar">
+    <div id="nav">
+      <button id="back" title="Atrás">
+        <svg viewBox="0 0 24 24"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+      </button>
+      <button id="forward" title="Adelante">
+        <svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+      </button>
+      <button id="reload" title="Recargar">
+        <svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.5-5.8"/><path d="M20 4v5h-5"/></svg>
+      </button>
+    </div>
+    <input id="address" type="text" placeholder="Busca o escribe una dirección">
+    <div id="right">
+      <button id="settings" title="Configuración"><svg viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></svg></button>
+    </div>
+  </div>
+  <script>
+    const address = document.getElementById('address');
+    const tabsEl = document.getElementById('tabs');
+    const CLOSE_ICON = '<svg viewBox="0 0 24 24"><path d="M5 5l14 14"/><path d="M19 5L5 19"/></svg>';
+    const GLOBE_ICON = '<svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/></svg>';
+    const MUTED_ICON = '<svg viewBox="0 0 24 24"><path d="M11 5L6 9H3v6h3l5 4V5z"/><path d="M16 9.5l5 5"/><path d="M21 9.5l-5 5"/></svg>';
+    const START_ICON = '<svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/></svg>';
+    const SPEAKER_ICON = '<svg viewBox="0 0 24 24"><path d="M11 5L6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
+
+    document.getElementById('back').onclick = () => window.chorus.back();
+    document.getElementById('forward').onclick = () => window.chorus.forward();
+    document.getElementById('reload').onclick = () => window.chorus.reload();
+    document.getElementById('newtab').onclick = () => window.chorus.newTab();
+    document.getElementById('settings').onclick = () => window.chorus.openMenu();
+    address.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { window.chorus.navigate(address.value); address.blur(); }
+    });
+    let currentUrl = '';
+    let editing = false;
+    let activeTabId = null;
+    const drafts = {};
+    const urls = {};
+    function simplify(url) { try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return url; } }
+    function showSimple() { address.value = currentUrl ? simplify(currentUrl) : ''; }
+    function showForTab() {
+      if (drafts[activeTabId] !== undefined) address.value = drafts[activeTabId];
+      else if (editing) address.value = currentUrl;
+      else showSimple();
+    }
+    address.addEventListener('input', () => {
+      if (address.value === '') delete drafts[activeTabId];
+      else drafts[activeTabId] = address.value;
+    });
+    address.addEventListener('keydown', (e) => { if (e.key === 'Enter') delete drafts[activeTabId]; }, true);
+    address.addEventListener('focus', () => {
+      editing = true;
+      if (drafts[activeTabId] === undefined) {
+        address.value = currentUrl;
+        setTimeout(() => address.select(), 0);
+      }
+    });
+    address.addEventListener('blur', () => { editing = false; showForTab(); });
+    window.chorus.onTabsChange((tabs) => {
+      const ids = tabs.map((t) => t.id);
+      [drafts, urls].forEach((map) => {
+        Object.keys(map).forEach((k) => { if (!ids.includes(Number(k))) delete map[k]; });
+      });
+      const active = tabs.find((t) => t.active);
+      if (active && active.id !== activeTabId) {
+        activeTabId = active.id;
+        currentUrl = urls[activeTabId] || '';
+        showForTab();
+      }
+    });
+    window.chorus.onUrlChange((url) => {
+      const prev = urls[activeTabId];
+      urls[activeTabId] = url;
+      currentUrl = url;
+      if (prev !== undefined && prev !== url) delete drafts[activeTabId];
+      showForTab();
+    });
+
+    function updateNarrow() {
+      document.querySelectorAll('.tab').forEach((el) => {
+        el.classList.toggle('narrow', el.offsetWidth < 90 && !el.classList.contains('active'));
+      });
+    }
+
+    function makeIcon(src) {
+      const box = document.createElement('span');
+      box.className = 'tab-icon';
+      if (src && /^(https?:|data:image\/)/i.test(src)) {
+        const img = document.createElement('img');
+        img.referrerPolicy = 'no-referrer';
+        img.alt = '';
+        img.onerror = () => { box.innerHTML = GLOBE_ICON; };
+        img.src = src;
+        box.appendChild(img);
+      } else {
+        box.innerHTML = GLOBE_ICON;
+      }
+      return box;
+    }
+
+    window.chorus.onTabsChange((tabs) => {
+      tabsEl.innerHTML = '';
+      tabs.forEach((tab) => {
+        const el = document.createElement('div');
+        el.className = 'tab' + (tab.active ? ' active' : '');
+        el.title = tab.title;
+        el.onclick = () => window.chorus.switchTab(tab.id);
+
+        const icon = makeIcon(tab.favicon); if (tab.isStart) icon.innerHTML = START_ICON;
+
+        const title = document.createElement('span');
+        title.className = 'tab-title';
+        title.textContent = tab.title;
+
+        el.appendChild(icon);
+        if (tab.audible || tab.muted) { const spk = document.createElement('button'); spk.className = 'tab-audio'; spk.title = tab.muted ? 'Activar sonido' : 'Silenciar pestaña'; spk.innerHTML = tab.muted ? MUTED_ICON : SPEAKER_ICON; spk.onclick = (e) => { e.stopPropagation(); window.chorus.toggleMute(tab.id); }; el.appendChild(spk); }
+        el.appendChild(title);
+
+        if (tab.audible) {
+          const audio = document.createElement('span');
+          audio.className = 'tab-audio';
+          audio.innerHTML = SPEAKER_ICON;
+          
+        }
+
+        const close = document.createElement('button');
+        close.className = 'tab-close';
+        close.innerHTML = CLOSE_ICON;
+        close.title = 'Cerrar pestaña';
+        close.onclick = (e) => {
+          e.stopPropagation();
+          window.chorus.closeTab(tab.id);
+        };
+        el.appendChild(close);
+
+        tabsEl.appendChild(el);
+      });
+      updateNarrow();
+    });
+
+    window.addEventListener('resize', updateNarrow);
+    const aplicarAjustes = (s) => { document.body.classList.toggle('compact', !!(s && s.compact)); updateNarrow(); };
+    
+    
+    window.chorus.onFocusAddress(() => { address.focus(); address.select(); });
+  </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

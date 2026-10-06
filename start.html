@@ -1,0 +1,352 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Nueva pestaña</title>
+  <style>
+    body, input, button {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #1e1f22;
+      color: #eeeeee;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      max-width: 720px;
+    }
+    .tile {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      width: 56px;
+      padding: 0;
+      border: none;
+      background: transparent;
+      color: #c4c7c5;
+      font-size: 12px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    body.labels .tile { width: 88px; }
+    .tile:hover { color: #ffffff; }
+    .icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      background: #2a2a2a;
+      color: #bbbbbb;
+    }
+    .tile:hover .icon { background: #353535; color: #ffffff; }
+    .icon img {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      object-fit: contain;
+    }
+    .icon svg {
+      width: 24px;
+      height: 24px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .label {
+      display: none;
+      max-width: 88px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    body.labels .label { display: block; }
+    .remove {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      padding: 0;
+      border: none;
+      border-radius: 50%;
+      background: #4a4a4a;
+      color: #ffffff;
+      cursor: pointer;
+    }
+    body.labels .remove { right: 6px; }
+    .remove svg {
+      width: 10px;
+      height: 10px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.4;
+      stroke-linecap: round;
+    }
+    .tile:hover .remove { display: flex; }
+    #labels-toggle {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      border: none;
+      border-radius: 50%;
+      background: #2a2a2a;
+      color: #bbbbbb;
+      cursor: pointer;
+    }
+    #labels-toggle:hover { background: #3a3a3a; color: #ffffff; }
+    body.labels #labels-toggle { background: #3a3a3a; color: #ffffff; }
+    #labels-toggle svg {
+      width: 16px;
+      height: 16px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+    }
+    #modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.6);
+    }
+    #modal.open { display: flex; }
+    #dialog {
+      width: 320px;
+      padding: 20px;
+      border-radius: 14px;
+      background: #242424;
+      box-sizing: border-box;
+    }
+    #dialog h2 { margin: 0 0 14px; font-size: 16px; font-weight: 500; }
+    #dialog input {
+      width: 100%;
+      height: 34px;
+      margin-bottom: 10px;
+      padding: 0 12px;
+      border: none;
+      border-radius: 8px;
+      background: #2f2f2f;
+      color: #eeeeee;
+      font-size: 13px;
+      box-sizing: border-box;
+      outline: none;
+    }
+    #dialog input:focus { background: #383838; }
+    #error { min-height: 16px; margin-bottom: 8px; font-size: 12px; color: #e57373; }
+    #error.info { color: #aaaaaa; }
+    #buttons { display: flex; justify-content: flex-end; gap: 8px; }
+    #buttons button {
+      height: 32px;
+      padding: 0 16px;
+      border: none;
+      border-radius: 8px;
+      background: #2f2f2f;
+      color: #eeeeee;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    #buttons button:hover { background: #3a3a3a; }
+    #save { background: #4a4a4a !important; }
+    #save:hover { background: #5a5a5a !important; }
+      /* botón de añadir en azul */
+    .tile.add .icon { background: #2f5fb3; color: #ffffff; }
+    .tile.add:hover .icon { background: #3d6fd8; color: #ffffff; }
+      .tile.dragging { opacity: 0.35; }
+  </style>
+</head>
+<body>
+  <div id="grid"></div>
+
+  <button id="labels-toggle" title="Mostrar u ocultar nombres">
+    <svg viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h10"/></svg>
+  </button>
+
+  <div id="modal">
+    <div id="dialog">
+      <h2>Nuevo acceso directo</h2>
+      <input id="name" type="text" placeholder="Nombre (opcional)">
+      <input id="url" type="text" placeholder="Dirección, por ejemplo wikipedia.org">
+      <div id="error"></div>
+      <div id="buttons">
+        <button id="cancel">Cancelar</button>
+        <button id="save">Añadir</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const grid = document.getElementById('grid');
+    const modal = document.getElementById('modal');
+    const nameInput = document.getElementById('name');
+    const urlInput = document.getElementById('url');
+    const errorEl = document.getElementById('error');
+
+    const PLUS = '<svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>';
+    const CROSS = '<svg viewBox="0 0 24 24"><path d="M5 5l14 14"/><path d="M19 5L5 19"/></svg>';
+    const GLOBE = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18z"/></svg>';
+
+    let saving = false;
+
+    // Opción: mostrar u ocultar los nombres bajo los accesos
+    try {
+      if (localStorage.getItem('chorus-labels') === '1') document.body.classList.add('labels');
+    } catch {}
+    document.getElementById('labels-toggle').onclick = () => {
+      const on = document.body.classList.toggle('labels');
+      try { localStorage.setItem('chorus-labels', on ? '1' : '0'); } catch {}
+    };
+
+    function openModal() {
+      nameInput.value = '';
+      urlInput.value = '';
+      errorEl.textContent = '';
+      errorEl.className = '';
+      modal.classList.add('open');
+      urlInput.focus();
+    }
+
+    function closeModal() {
+      modal.classList.remove('open');
+    }
+
+    async function render() {
+      grid.innerHTML = '';
+      if (!window.chorusStart) {
+        grid.textContent = 'No se pudieron cargar los accesos directos.';
+        return;
+      }
+      const list = await window.chorusStart.getShortcuts();
+
+      list.forEach((item) => {
+        const tile = document.createElement('a');
+        tile.className = 'tile';
+        tile.href = item.url;
+        tile.title = item.name;
+        tile.draggable = true;
+        tile.dataset.id = item.id;
+
+        const icon = document.createElement('div');
+        icon.className = 'icon';
+        if (item.icon) {
+          const img = document.createElement('img');
+          img.src = item.icon;
+          img.alt = '';
+          img.draggable = false;
+          img.onerror = () => { icon.innerHTML = GLOBE; };
+          icon.appendChild(img);
+        } else {
+          icon.innerHTML = GLOBE;
+        }
+
+        const label = document.createElement('div');
+        label.className = 'label';
+        label.textContent = item.name;
+
+        const remove = document.createElement('button');
+        remove.className = 'remove';
+        remove.innerHTML = CROSS;
+        remove.title = 'Quitar acceso directo';
+        remove.onclick = async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          await window.chorusStart.removeShortcut(item.id);
+          render();
+        };
+
+        tile.appendChild(icon);
+        tile.appendChild(label);
+        tile.appendChild(remove);
+        grid.appendChild(tile);
+      });
+
+      const add = document.createElement('button');
+      add.className = 'tile add';
+      add.title = 'Añadir acceso directo';
+      add.onclick = openModal;
+      add.innerHTML = '<div class="icon">' + PLUS + '</div><div class="label">Añadir</div>';
+      grid.appendChild(add);
+    }
+
+    async function save() {
+      if (saving) return;
+      saving = true;
+      errorEl.className = 'info';
+      errorEl.textContent = 'Buscando el icono...';
+      const result = await window.chorusStart.addShortcut(nameInput.value, urlInput.value);
+      saving = false;
+      if (!result) {
+        errorEl.className = '';
+        errorEl.textContent = 'Esa dirección no es válida.';
+        return;
+      }
+      closeModal();
+      render();
+    }
+
+        // Arrastrar los accesos directos para reordenarlos
+    let dragEl = null;
+    grid.addEventListener('dragstart', (e) => {
+      const t = e.target.closest && e.target.closest('.tile[data-id]');
+      if (!t) return;
+      dragEl = t;
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', t.dataset.id);
+      setTimeout(() => t.classList.add('dragging'), 0);
+    });
+    grid.addEventListener('dragover', (e) => {
+      if (!dragEl) return;
+      e.preventDefault();
+      const over = e.target.closest && e.target.closest('.tile');
+      if (!over || over === dragEl) return;
+      if (over.classList.contains('add')) { grid.insertBefore(dragEl, over); return; }
+      const r = over.getBoundingClientRect();
+      grid.insertBefore(dragEl, e.clientX < r.left + r.width / 2 ? over : over.nextSibling);
+    });
+    grid.addEventListener('drop', (e) => { if (dragEl) e.preventDefault(); });
+    grid.addEventListener('dragend', () => {
+      if (!dragEl) return;
+      dragEl.classList.remove('dragging');
+      dragEl = null;
+      const ids = [...grid.querySelectorAll('.tile[data-id]')].map((x) => x.dataset.id);
+      window.chorusStart.reorderShortcuts(ids);
+    });
+    document.getElementById('save').onclick = save;
+    document.getElementById('cancel').onclick = closeModal;
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+    document.addEventListener('keydown', (e) => {
+      if (!modal.classList.contains('open')) return;
+      if (e.key === 'Enter') save();
+      if (e.key === 'Escape') closeModal();
+    });
+
+    render();
+  </script>
+</body>
+</html>
+
+

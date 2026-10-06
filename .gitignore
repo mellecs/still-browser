@@ -1,0 +1,8 @@
+﻿node_modules/
+dist/
+*.bak
+*.antes-*
+extensions-off/
+salida.txt
+errores.txt
+log.txt
