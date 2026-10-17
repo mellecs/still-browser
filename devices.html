@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Devices</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:transparent;overflow:hidden;font:13px 'Inter','Segoe UI',system-ui,sans-serif;user-select:none}
+#shade{position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,.35);display:flex;align-items:flex-start;justify-content:center;padding-top:90px}
+#box{width:360px;max-width:92vw;max-height:70vh;display:flex;flex-direction:column;padding:12px;border-radius:16px;background:var(--bg,#292a2d);border:1px solid var(--border,#3c3d40);box-shadow:0 10px 32px rgba(0,0,0,.55);color:var(--text,#fff);animation:pop .12s ease-out}
+@keyframes pop{from{opacity:0;transform:scale(.96) translateY(4px)}to{opacity:1;transform:none}}
+#title{font-size:14px;font-weight:600;padding:4px 4px 2px}
+#host{color:var(--muted,#c4c7c5);padding:0 4px 10px}
+#list{overflow:auto;display:flex;flex-direction:column;gap:6px;padding-bottom:10px}
+.dev{display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;border:2px solid transparent;border-radius:8px;background:color-mix(in srgb,var(--text,#fff) 7%,var(--bg,#292a2d));color:var(--text,#fff);font:inherit;font-weight:600;padding:9px 12px;cursor:pointer}
+.dev:hover{background:color-mix(in srgb,var(--text,#fff) 12%,var(--bg,#292a2d))}
+.dev.sel{border-color:var(--accent,#5b9bff)}
+.dev small{color:var(--muted,#c4c7c5);font-weight:400;flex:none}
+#empty{color:var(--muted,#c4c7c5);padding:10px 4px 14px;line-height:1.4}
+#buttons{display:flex;justify-content:flex-end;gap:8px}
+button.act{height:34px;padding:0 16px;border:none;border-radius:8px;font:inherit;font-weight:600;cursor:pointer}
+#cancel{background:color-mix(in srgb,var(--text,#fff) 10%,var(--bg,#292a2d));color:var(--text,#fff)}
+#ok{background:var(--accent,#5b9bff);color:#fff}
+#ok:disabled{opacity:.4;cursor:default}
+</style>
+</head>
+<body>
+<div id="shade">
+  <div id="box">
+    <div id="title"></div>
+    <div id="host"></div>
+    <div id="list"></div>
+    <div id="empty"></div>
+    <div id="buttons">
+      <button class="act" id="cancel"></button>
+      <button class="act" id="ok" disabled></button>
+    </div>
+  </div>
+</div>
+<script>
+let data = null;
+let sel = '';
+function $(id) { return document.getElementById(id); }
+function mk(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text) e.textContent = text;
+  return e;
+}
+function render() {
+  if (!data) return;
+  const th = data.theme || {};
+  const r = document.documentElement.style;
+  if (th.bg) r.setProperty('--bg', th.bg);
+  if (th.border) r.setProperty('--border', th.border);
+  if (th.text) r.setProperty('--text', th.text);
+  if (th.muted) r.setProperty('--muted', th.muted);
+  if (th.accent) r.setProperty('--accent', th.accent);
+  const T = data.text || {};
+  $('title').textContent = T[data.kind] || '';
+  $('host').textContent = data.host ? (data.host + ' ' + (T.wants || '')) : '';
+  const list = $('list');
+  list.innerHTML = '';
+  if (!data.devices.some((d) => d.id === sel)) sel = '';
+  data.devices.forEach((d) => {
+    const b = mk('button', 'dev' + (d.id === sel ? ' sel' : ''));
+    b.appendChild(mk('span', '', d.name));
+    if (d.extra) b.appendChild(mk('small', '', d.extra));
+    b.onclick = () => {
+      sel = d.id;
+      list.querySelectorAll('.dev').forEach((x) => x.classList.toggle('sel', x === b));
+      $('ok').disabled = false;
+    };
+    b.ondblclick = () => window.devicesApi.choose(d.id);
+    list.appendChild(b);
+  });
+  const none = data.devices.length === 0;
+  $('empty').style.display = none ? 'block' : 'none';
+  $('empty').textContent = none ? (data.kind === 'bluetooth' ? T.searching : T.empty) : '';
+  $('ok').textContent = T.connect || '';
+  $('cancel').textContent = T.cancel || '';
+  $('ok').disabled = !sel;
+}
+$('ok').onclick = () => { if (sel) window.devicesApi.choose(sel); };
+$('cancel').onclick = () => window.devicesApi.cancel();
+$('shade').onclick = (e) => { if (e.target === $('shade')) window.devicesApi.cancel(); };
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') window.devicesApi.cancel();
+  else if (e.key === 'Enter' && sel) window.devicesApi.choose(sel);
+});
+if (window.devicesApi) {
+  window.devicesApi.onData((d) => { data = d; render(); });
+}
+</script>
+</body>
+</html>

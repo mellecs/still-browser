@@ -1,4 +1,4 @@
-﻿(() => {
+(() => {
   if (window.__chorusYT) return;
   window.__chorusYT = true;
 
@@ -29,5 +29,5 @@
       video.playbackRate = velAntes;
     }
   };
-  setInterval(quitar, 250);
+  setInterval(quitar, 100);
 })();

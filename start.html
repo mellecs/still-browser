@@ -1,11 +1,11 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Nueva pestaña</title>
+  <title>New tab</title>
   <style>
     body, input, button {
-      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
     }
     body {
       margin: 0;
@@ -177,14 +177,211 @@
     .tile.add .icon { background: #2f5fb3; color: #ffffff; }
     .tile.add:hover .icon { background: #3d6fd8; color: #ffffff; }
       .tile.dragging { opacity: 0.35; }
+    .tile .remove, .tile:hover .remove { display: none !important; } /* SIN_X_HOVER */
+
+    #ctx {
+      position: fixed; display: none; z-index: 1000; min-width: 170px;
+      padding: 8px; border-radius: 16px; box-sizing: border-box;
+      background: var(--panel, #292a2d); color: var(--text, #ffffff);
+      border: 1px solid color-mix(in srgb, var(--text, #ffffff) 12%, transparent);
+      box-shadow: 0 10px 32px rgba(0, 0, 0, 0.55);
+      font-family: inherit; font-size: 13px; user-select: none;
+    } /* EDITAR_ACCESO */
+    #ctx.open { display: block; animation: ctxpop 0.12s ease-out; }
+    @keyframes ctxpop { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: none; } }
+    #ctx .crow {
+      display: flex; align-items: center; gap: 12px; min-height: 34px;
+      padding: 0 8px; border-radius: 8px; box-sizing: border-box; cursor: pointer;
+    }
+    #ctx .crow:hover { background: color-mix(in srgb, var(--text, #ffffff) 10%, transparent); }
+    #ctx .crow svg {
+      width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; opacity: 0.75;
+      stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+    }
+    #ctx .csep { height: 1px; margin: 6px 0; background: color-mix(in srgb, var(--text, #ffffff) 12%, transparent); }
+  </style>
+<style>
+    /* temas: el tema Actual usa estos valores, que son los de siempre */
+    body {
+      --bg: #1e1f22; --text: #eeeeee; --muted: #c4c7c5;
+      --icon-bg: #2a2a2a; --icon-fg: #bbbbbb; --icon-hover: #353535;
+      --panel: #242424; --input: #2f2f2f; --input-focus: #383838;
+      --btn: #2f2f2f; --btn-hover: #3a3a3a;
+      --save: #4a4a4a; --save-hover: #5a5a5a; --remove: #4a4a4a;
+      --toggle: #2a2a2a; --toggle-hover: #3a3a3a;
+      --accent: #2f5fb3; --accent-hover: #3d6fd8;
+    }
+    body { background: var(--bg); color: var(--text); }
+    .tile { color: var(--muted); }
+    .icon { background: var(--icon-bg); color: var(--icon-fg); }
+    .tile:hover .icon { background: var(--icon-hover); color: #ffffff; }
+    .remove { background: var(--remove); }
+    #labels-toggle { background: var(--toggle); color: var(--icon-fg); }
+    #labels-toggle:hover, #labels-toggle.on { background: var(--toggle-hover); color: #ffffff; }
+    body.labels #labels-toggle { background: var(--toggle); color: var(--icon-fg); }
+    body.labels #labels-toggle:hover, body.labels #labels-toggle.on { background: var(--toggle-hover); color: #ffffff; }
+    #dialog { background: var(--panel); }
+    #dialog input { background: var(--input); color: var(--text); }
+    #dialog input:focus { background: var(--input-focus); }
+    #buttons button { background: var(--btn); color: var(--text); }
+    #buttons button:hover { background: var(--btn-hover); }
+    #save { background: var(--save) !important; }
+    #save:hover { background: var(--save-hover) !important; }
+    .tile.add .icon { background: var(--accent); color: #ffffff; }
+    .tile.add:hover .icon { background: var(--accent-hover); color: #ffffff; }
+
+    body.no-shortcuts #grid { display: none; }
+    body.no-add .tile.add { display: none !important; } /* START_SIN_MAS */
+
+    #menu {
+      position: fixed;
+      right: 16px;
+      bottom: 58px;
+      display: none;
+      width: 240px;
+      padding: 14px;
+      border-radius: 14px;
+      background: var(--panel);
+      color: var(--text);
+      box-sizing: border-box;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+      font-size: 13px;
+    }
+    #menu.open { display: block; }
+    #menu .menu-title { margin: 0 0 8px; font-size: 12px; color: var(--muted); }
+    #menu .menu-title.second { margin-top: 14px; }
+    #themes { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    #themes button {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 32px;
+      padding: 0 8px;
+      border: 2px solid transparent;
+      border-radius: 8px;
+      background: var(--btn);
+      color: var(--text);
+      font-size: 12px;
+      cursor: pointer;
+    }
+    #themes button:hover { background: var(--btn-hover); }
+    #themes button.sel { border-color: var(--accent); }
+    #themes .sw {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      flex: none;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+    #menu .row { display: flex; align-items: center; gap: 8px; padding: 6px 2px; cursor: pointer; }
+    #menu .row.sub { margin-left: 22px; }
+    #menu .row.off { opacity: 0.45; cursor: default; }
+    #menu input[type=checkbox] { accent-color: var(--accent); width: 15px; height: 15px; margin: 0; }
+    #modes { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    #modes button { height: 32px; border: 2px solid transparent; border-radius: 8px; background: var(--btn); color: var(--text); font-size: 12px; cursor: pointer; }
+    #modes button:hover { background: var(--btn-hover); }
+    #modes button.sel { border-color: var(--accent); }
+    body.light .tile:hover { color: #111111; }
+    body.light .tile:hover .icon { color: #111111; }
+    body.light #labels-toggle:hover, body.light #labels-toggle.on { color: #111111; }
+    body.light.labels #labels-toggle:hover, body.light.labels #labels-toggle.on { color: #111111; }
+    body.light .tile.add .icon, body.light .tile.add:hover .icon { color: #ffffff; }
+  </style>
+<script src="i18n.js"></script>
+<link rel="stylesheet" href="fonts.css">
+<style>
+    /* ESTILO_MENU: el panel de personalizacion usa el aspecto de menu.html */
+    #menu {
+      --m-bg: color-mix(in srgb, var(--panel) 60%, var(--btn));
+      --m-hover: var(--btn-hover);
+      --m-border: color-mix(in srgb, var(--btn-hover) 90%, var(--bg));
+      --m-accent: color-mix(in srgb, var(--accent) 75%, #ffffff);
+      width: 280px;
+      padding: 12px;
+      border-radius: 16px;
+      background: var(--m-bg);
+      border: 1px solid var(--m-border);
+      box-shadow: 0 10px 32px rgba(0, 0, 0, 0.55);
+      font: 13px 'Inter', 'Segoe UI', system-ui, sans-serif;
+      user-select: none;
+      transform-origin: bottom right;
+    }
+    #menu.open { display: block; animation: menu-pop 0.12s ease-out; }
+    @keyframes menu-pop {
+      from { opacity: 0; transform: scale(0.96) translateY(4px); }
+      to { opacity: 1; transform: none; }
+    }
+    #menu .menu-title { margin: 0; padding: 4px 2px 8px; font-size: 13px; color: var(--muted); cursor: default; }
+    #menu .menu-title.second { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--m-border); }
+    #menu #themes, #menu #modes { gap: 8px; margin-bottom: 4px; }
+    #menu #themes button, #menu #modes button {
+      display: flex; align-items: center; gap: 10px;
+      height: 34px; padding: 0 12px; box-sizing: border-box;
+      border: 2px solid transparent; border-radius: 8px;
+      background: color-mix(in srgb, var(--text) 7%, var(--m-bg));
+      color: var(--text); font: inherit; font-weight: 600; cursor: pointer;
+      position: relative; text-align: left;
+    }
+    #menu #themes button:hover, #menu #modes button:hover {
+      background: color-mix(in srgb, var(--text) 12%, var(--m-bg));
+    }
+    #menu #themes button.sel, #menu #modes button.sel { border-color: var(--m-accent); }
+    #menu #themes .sw { width: 16px; height: 16px; border: 1px solid rgba(255, 255, 255, 0.25); box-sizing: border-box; }
+    #menu .row {
+      display: flex; align-items: center; gap: 10px;
+      min-height: 30px; padding: 0 2px; border-radius: 6px;
+      font-weight: 600; cursor: pointer;
+    }
+    #menu .row.sub { margin-left: 26px; }
+    #menu .row.off { opacity: 0.4; cursor: default; }
+    #menu input[type=checkbox] {
+      -webkit-appearance: none; appearance: none;
+      width: 18px; height: 18px; margin: 0; flex: none; box-sizing: border-box;
+      border: 2px solid var(--muted); border-radius: 4px; background: transparent;
+      cursor: inherit;
+    }
+    #menu input[type=checkbox]:checked {
+      background-color: var(--m-accent); border-color: var(--m-accent);
+      background-repeat: no-repeat; background-position: center; background-size: 12px 12px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E");
+    }
+    #menu input[type=checkbox]:disabled { opacity: 0.6; }
+  </style>
+<style>
+    /* COLOR_PANEL_ACTUAL: en el tema Actual el panel tiene el mismo color que el menu de las tres barras */
+    body:not([style*="--bg"]) #menu {
+      --m-bg: #292a2d;
+      --m-hover: #3a3b3f;
+      --m-border: #3c3d40;
+      --m-accent: #5b9bff;
+      background: #292a2d !important;
+      border: 1px solid #3c3d40 !important;
+    }
   </style>
 </head>
 <body>
   <div id="grid"></div>
 
-  <button id="labels-toggle" title="Mostrar u ocultar nombres">
+  <button id="labels-toggle" title="Personalizar">
     <svg viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h10"/></svg>
   </button>
+
+  <div id="menu">
+    <div class="menu-title">Tema</div>
+    <div id="themes"></div>
+    <div class="menu-title second" id="t-shortcuts">Accesos directos</div>
+    <label class="row"><input type="checkbox" id="opt-shortcuts"> Mostrar accesos directos</label>
+    <label class="row sub" id="row-labels"><input type="checkbox" id="opt-labels"> Mostrar nombres</label>
+    <label class="row sub" id="row-add"><input type="checkbox" id="opt-add"> Mostrar el bot&oacute;n +</label>
+    <!-- OCULTO_BARRA --><div class="menu-title second" id="t-toolbar" style="display:none !important">Barra de herramientas</div>
+    <label class="row" style="display:none !important"><input type="checkbox" id="opt-downloads"> Mostrar icono de descargas</label>
+  </div>
+
+  <div id="ctx"><!-- EDITAR_ACCESO -->
+    <div class="crow" id="ctx-edit"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg><span id="ctx-edit-l">Editar</span></div>
+    <div class="csep"></div>
+    <div class="crow" id="ctx-del"><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg><span id="ctx-del-l">Eliminar</span></div>
+  </div>
 
   <div id="modal">
     <div id="dialog">
@@ -222,6 +419,7 @@
     };
 
     function openModal() {
+      resetEditMode(); // EDITAR_ACCESO
       nameInput.value = '';
       urlInput.value = '';
       errorEl.textContent = '';
@@ -234,10 +432,16 @@
       modal.classList.remove('open');
     }
 
+    function quitarTarjeta(id) { /* SIN_RECARGA */
+      try {
+        const t = grid.querySelector('.tile[data-id="' + String(id).replace(/"/g, '') + '"]');
+        if (t) t.remove(); else render();
+      } catch (e) { render(); }
+    }
     async function render() {
       grid.innerHTML = '';
       if (!window.chorusStart) {
-        grid.textContent = 'No se pudieron cargar los accesos directos.';
+        grid.textContent = L('loadFail');
         return;
       }
       const list = await window.chorusStart.getShortcuts();
@@ -249,6 +453,7 @@
         tile.title = item.name;
         tile.draggable = true;
         tile.dataset.id = item.id;
+        tile.addEventListener('contextmenu', (e) => { e.preventDefault(); e.stopPropagation(); showCtx(e.clientX, e.clientY, item); }); // EDITAR_ACCESO
 
         const icon = document.createElement('div');
         icon.className = 'icon';
@@ -270,12 +475,12 @@
         const remove = document.createElement('button');
         remove.className = 'remove';
         remove.innerHTML = CROSS;
-        remove.title = 'Quitar acceso directo';
+        remove.title = L('removeShortcut');
         remove.onclick = async (e) => {
           e.preventDefault();
           e.stopPropagation();
           await window.chorusStart.removeShortcut(item.id);
-          render();
+          quitarTarjeta(item.id);
         };
 
         tile.appendChild(icon);
@@ -286,9 +491,9 @@
 
       const add = document.createElement('button');
       add.className = 'tile add';
-      add.title = 'Añadir acceso directo';
+      add.title = L('addShortcut');
       add.onclick = openModal;
-      add.innerHTML = '<div class="icon">' + PLUS + '</div><div class="label">Añadir</div>';
+      add.innerHTML = '<div class="icon">' + PLUS + '</div><div class="label">' + L('add') + '</div>';
       grid.appendChild(add);
     }
 
@@ -296,12 +501,14 @@
       if (saving) return;
       saving = true;
       errorEl.className = 'info';
-      errorEl.textContent = 'Buscando el icono...';
-      const result = await window.chorusStart.addShortcut(nameInput.value, urlInput.value);
+      errorEl.textContent = L('searchingIcon');
+      const result = editingId !== null
+        ? await window.chorusStart.editShortcut(editingId, nameInput.value, urlInput.value)
+        : await window.chorusStart.addShortcut(nameInput.value, urlInput.value); // EDITAR_ACCESO
       saving = false;
       if (!result) {
         errorEl.className = '';
-        errorEl.textContent = 'Esa dirección no es válida.';
+        errorEl.textContent = L('invalidAddress');
         return;
       }
       closeModal();
@@ -335,6 +542,68 @@
       const ids = [...grid.querySelectorAll('.tile[data-id]')].map((x) => x.dataset.id);
       window.chorusStart.reorderShortcuts(ids);
     });
+    // EDITAR_ACCESO: menu de clic derecho y edicion
+    const ctxEl = document.getElementById('ctx');
+    const dlgTitle = document.querySelector('#dialog h2');
+    const saveBtn = document.getElementById('save');
+    let editingId = null;
+    let ctxItem = null;
+    let origTitle = '';
+    let origSave = '';
+
+    function esUI() { return document.getElementById('cancel').textContent.trim() === 'Cancelar'; }
+
+    function resetEditMode() {
+      if (editingId === null) return;
+      editingId = null;
+      dlgTitle.textContent = origTitle;
+      saveBtn.textContent = origSave;
+    }
+
+    function openEdit(item) {
+      if (editingId === null) { origTitle = dlgTitle.textContent; origSave = saveBtn.textContent; }
+      editingId = item.id;
+      const es = esUI();
+      dlgTitle.textContent = es ? 'Editar acceso directo' : 'Edit shortcut';
+      saveBtn.textContent = es ? 'Guardar' : 'Save';
+      nameInput.value = item.name || '';
+      urlInput.value = item.url || '';
+      errorEl.textContent = '';
+      errorEl.className = '';
+      modal.classList.add('open');
+      urlInput.focus();
+      urlInput.select();
+    }
+
+    function hideCtx() { ctxEl.classList.remove('open'); ctxItem = null; }
+
+    function showCtx(x, y, item) {
+      ctxItem = item;
+      const es = esUI();
+      document.getElementById('ctx-edit-l').textContent = es ? 'Editar' : 'Edit';
+      document.getElementById('ctx-del-l').textContent = es ? 'Eliminar' : 'Delete';
+      ctxEl.style.left = '0px';
+      ctxEl.style.top = '0px';
+      ctxEl.classList.add('open');
+      const w = ctxEl.offsetWidth;
+      const hh = ctxEl.offsetHeight;
+      ctxEl.style.left = Math.max(8, Math.min(x, window.innerWidth - w - 8)) + 'px';
+      ctxEl.style.top = Math.max(8, Math.min(y, window.innerHeight - hh - 8)) + 'px';
+    }
+
+    document.getElementById('ctx-edit').onclick = () => { const it = ctxItem; hideCtx(); if (it) openEdit(it); };
+    document.getElementById('ctx-del').onclick = async () => {
+      const it = ctxItem;
+      hideCtx();
+      if (!it) return;
+      await window.chorusStart.removeShortcut(it.id);
+      quitarTarjeta(it.id);
+    };
+    document.addEventListener('mousedown', (e) => { if (!ctxEl.contains(e.target)) hideCtx(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hideCtx(); });
+    window.addEventListener('blur', hideCtx);
+    window.addEventListener('resize', hideCtx);
+    window.addEventListener('wheel', hideCtx, { passive: true });
     document.getElementById('save').onclick = save;
     document.getElementById('cancel').onclick = closeModal;
     modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
@@ -345,6 +614,315 @@
     });
 
     render();
+  </script>
+<script>
+    // Menu de personalizacion: temas y accesos directos
+    const THEME_KEY = 'still-theme';
+    const SHORTCUTS_KEY = 'still-shortcuts';
+    const THEMES = [
+      { id: 'actual', name: 'Fox' },
+      { id: 'grafito', name: 'Helio', h: 0, s: 0, l: 7 },
+      { id: 'oceano', name: 'Oc\u00e9ano', h: 215, s: 35, l: 12 },
+      { id: 'bosque', name: 'Bosque', h: 150, s: 28, l: 11 },
+      { id: 'violeta', name: 'Violeta', h: 265, s: 32, l: 13 },
+      { id: 'ambar', name: '\u00c1mbar', h: 30, s: 35, l: 12 },
+      { id: 'rosa', name: 'Rosa', h: 335, s: 32, l: 13 }
+    ];
+    const VARS = ['--bg', '--text', '--muted', '--icon-bg', '--icon-fg', '--icon-hover', '--panel', '--input', '--input-focus', '--btn', '--btn-hover', '--save', '--save-hover', '--remove', '--toggle', '--toggle-hover', '--accent', '--accent-hover'];
+
+    function themeVars(t) {
+      const c = (l) => 'hsl(' + t.h + ' ' + t.s + '% ' + l + '%)';
+      const gray = t.s === 0;
+      const accS = gray ? 0 : 60;
+      const accL = gray ? 40 : 48;
+      return {
+        '--bg': c(t.l), '--text': '#f0f0f0',
+        '--muted': 'hsl(' + t.h + ' ' + Math.min(t.s, 15) + '% 76%)',
+        '--icon-bg': c(t.l + 6), '--icon-fg': 'hsl(' + t.h + ' ' + Math.min(t.s, 15) + '% 78%)',
+        '--icon-hover': c(t.l + 12), '--panel': c(t.l + 3),
+        '--input': c(t.l + 8), '--input-focus': c(t.l + 13),
+        '--btn': c(t.l + 8), '--btn-hover': c(t.l + 16),
+        '--save': c(t.l + 20), '--save-hover': c(t.l + 26), '--remove': c(t.l + 20),
+        '--toggle': c(t.l + 6), '--toggle-hover': c(t.l + 12),
+        '--accent': 'hsl(' + t.h + ' ' + accS + '% ' + accL + '%)',
+        '--accent-hover': 'hsl(' + t.h + ' ' + accS + '% ' + (accL + 8) + '%)'
+      };
+    }
+
+    function customHsl(hex) {
+      const n = parseInt(hex.slice(1), 16);
+      const r = ((n >> 16) & 255) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255;
+      const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+      let h = 0;
+      if (d) {
+        if (mx === r) h = ((g - b) / d) % 6; else if (mx === g) h = (b - r) / d + 2; else h = (r - g) / d + 4;
+        h *= 60; if (h < 0) h += 360;
+      }
+      const l = (mx + mn) / 2;
+      const sat = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
+      return { h: Math.round(h), s: sat < 0.08 ? 0 : Math.round(Math.min(45, 15 + sat * 30)), l: Math.round(7 + l * 15) };
+    }
+
+    function swatch(t) {
+      if (t.id === 'actual') return '#1e1f22';
+      return 'hsl(' + t.h + ' ' + (t.s === 0 ? 0 : 60) + '% ' + (t.s === 0 ? 40 : 48) + '%)';
+    }
+
+    function applyTheme(id) {
+      const custom = (typeof id === 'string' && /^personalizado:#[0-9a-fA-F]{6}$/.test(id)) ? customHsl(id.slice(14)) : null;
+      const t = custom ? { id: 'personalizado', name: '', h: custom.h, s: custom.s, l: custom.l } : (THEMES.find((x) => x.id === id) || THEMES[0]);
+      const full = custom ? id : t.id;
+      VARS.forEach((v) => document.body.style.removeProperty(v));
+      if (t.id !== 'actual') {
+        const vals = themeVars(t);
+        Object.keys(vals).forEach((k) => document.body.style.setProperty(k, vals[k]));
+        if (t.id === 'grafito') { // GRAFITO_3A3C3C
+          const g = { '--bg': '#3A3C3C', '--icon-bg': '#4a4c4c', '--icon-hover': '#585a5a', '--panel': '#323434', '--input': '#4a4c4c', '--input-focus': '#555757', '--btn': '#4a4c4c', '--btn-hover': '#585a5a', '--save': '#5e6060', '--save-hover': '#6c6e6e', '--remove': '#5e6060', '--toggle': '#4a4c4c', '--toggle-hover': '#585a5a' };
+          Object.keys(g).forEach((k) => document.body.style.setProperty(k, g[k]));
+        }
+      }
+      document.querySelectorAll('#themes button').forEach((b) => b.classList.toggle('sel', b.dataset.id === t.id || (!!b.dataset.custom && t.id === 'personalizado')));
+      try { localStorage.setItem(THEME_KEY, full); } catch (e) {}
+      if (custom && window.updateCustomSwatch) window.updateCustomSwatch(id.slice(14));
+      if (window.chorusStart && window.chorusStart.setTheme) window.chorusStart.setTheme(full);
+    }
+
+    function applyAdd(show) { // START_SIN_MAS
+      document.body.classList.toggle('no-add', !show);
+      const ca = document.getElementById('opt-add'); if (ca) ca.checked = show;
+      try { localStorage.setItem('still-add', show ? '1' : '0'); } catch (e) {}
+    }
+
+    function applyShortcuts(show) {
+      document.body.classList.toggle('no-shortcuts', !show);
+      document.getElementById('opt-shortcuts').checked = show;
+      document.getElementById('opt-labels').disabled = !show;
+      document.getElementById('row-labels').classList.toggle('off', !show);
+      try { localStorage.setItem(SHORTCUTS_KEY, show ? '1' : '0'); } catch (e) {}
+    }
+
+    const menuEl = document.getElementById('menu');
+    const menuBtn = document.getElementById('labels-toggle');
+    const themesEl = document.getElementById('themes');
+
+    THEMES.forEach((t) => {
+      const b = document.createElement('button');
+      b.dataset.id = t.id;
+      const sw = document.createElement('span');
+      sw.className = 'sw';
+      sw.style.background = swatch(t);
+      const tx = document.createElement('span');
+      tx.textContent = t.name;
+      b.appendChild(sw);
+      b.appendChild(tx);
+      b.onclick = () => applyTheme(t.id);
+      themesEl.appendChild(b);
+    });
+
+    // COLOR_PERSONALIZADO: boton con selector de color
+    const customBtn = document.createElement('button');
+    customBtn.dataset.custom = '1';
+    const customSw = document.createElement('span');
+    customSw.className = 'sw';
+    customSw.style.background = 'radial-gradient(circle at center, #ffffff 0 20%, rgba(255,255,255,0) 22%), conic-gradient(from 0deg, hsl(350 85% 62%), hsl(30 90% 60%), hsl(55 90% 60%), hsl(120 65% 55%), hsl(170 70% 52%), hsl(205 85% 60%), hsl(250 80% 66%), hsl(300 70% 64%), hsl(350 85% 62%))'; // ICONO_COLOR2
+    const customTx = document.createElement('span');
+    customTx.textContent = 'Custom';
+    // SELECTOR_COLOR: selector propio (cuadrado S/B, tono, HEX y Confirm)
+    const colorIn = { value: '#3b7ddd' };
+    const CONIC = customSw.style.background;
+    customBtn.appendChild(customSw);
+    customBtn.appendChild(customTx);
+    const pkStyle = document.createElement('style');
+    pkStyle.textContent = '#cpk{position:fixed;z-index:99999;width:240px;box-sizing:border-box;padding:12px;border-radius:10px;background:#4a4a4d;box-shadow:0 8px 30px rgba(0,0,0,.5);display:none;font:13px Inter,"Segoe UI",system-ui,sans-serif;color:#e3e3e3}#cpk canvas{display:block;width:216px;border-radius:6px;touch-action:none;cursor:crosshair}#cpk .hr{margin-top:12px}#cpk .row{display:flex;align-items:center;gap:8px;margin-top:12px}#cpk .row b{font-weight:500;color:#9cc4ff}#cpk input{flex:1;min-width:0;height:30px;box-sizing:border-box;border:none;border-radius:6px;background:#5a5a5e;color:#e3e3e3;padding:0 8px;font:inherit;outline:none}#cpk .ok{margin:12px 0 0 auto;display:block;border:none;border-radius:8px;background:#2b2b2e;color:#e3e3e3;padding:7px 14px;font:inherit;cursor:pointer}#cpk .ok:hover{background:#1f1f21}';
+    document.head.appendChild(pkStyle);
+    const pk = document.createElement('div');
+    pk.id = 'cpk';
+    const svC = document.createElement('canvas'); svC.width = 216; svC.height = 150;
+    const huC = document.createElement('canvas'); huC.width = 216; huC.height = 14; huC.className = 'hr';
+    const row = document.createElement('div'); row.className = 'row';
+    const lab = document.createElement('b'); lab.textContent = 'HEX';
+    const hexIn = document.createElement('input'); hexIn.maxLength = 7; hexIn.spellcheck = false;
+    row.appendChild(lab); row.appendChild(hexIn);
+    const okB = document.createElement('button'); okB.className = 'ok';
+    pk.appendChild(svC); pk.appendChild(huC); pk.appendChild(row); pk.appendChild(okB);
+    document.body.appendChild(pk);
+    pk.addEventListener('click', (e) => e.stopPropagation());
+
+    const clamp = (x) => Math.max(0, Math.min(1, x));
+    const hsv2hex = (h, s, v) => {
+      const f = (n) => { const k = (n + h / 60) % 6; return v - v * s * Math.max(0, Math.min(k, 4 - k, 1)); };
+      const x = (a) => Math.round(255 * a).toString(16).padStart(2, '0');
+      return '#' + x(f(5)) + x(f(3)) + x(f(1));
+    };
+    const hex2hsv = (hex) => {
+      const n = parseInt(hex.slice(1), 16);
+      const r = ((n >> 16) & 255) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255;
+      const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+      let h = 0;
+      if (d) {
+        if (mx === r) h = ((g - b) / d) % 6; else if (mx === g) h = (b - r) / d + 2; else h = (r - g) / d + 4;
+        h *= 60; if (h < 0) h += 360;
+      }
+      return { h, s: mx ? d / mx : 0, v: mx };
+    };
+    let ph = 215, ps = 0.75, pv = 0.87, pOpen = false, pPrev = null, pTimer = null;
+    const pCur = () => hsv2hex(ph, ps, pv);
+    const marker = (c, x, y) => {
+      c.beginPath(); c.arc(x, y, 6, 0, Math.PI * 2);
+      c.lineWidth = 3; c.strokeStyle = 'rgba(0,0,0,.45)'; c.stroke();
+      c.lineWidth = 2; c.strokeStyle = '#fff'; c.stroke();
+    };
+    const pDraw = () => {
+      const c = svC.getContext('2d'), W = svC.width, H = svC.height;
+      c.fillStyle = hsv2hex(ph, 1, 1); c.fillRect(0, 0, W, H);
+      let g = c.createLinearGradient(0, 0, W, 0);
+      g.addColorStop(0, '#fff'); g.addColorStop(1, 'rgba(255,255,255,0)');
+      c.fillStyle = g; c.fillRect(0, 0, W, H);
+      g = c.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, '#000');
+      c.fillStyle = g; c.fillRect(0, 0, W, H);
+      marker(c, ps * W, (1 - pv) * H);
+      const d = huC.getContext('2d'), HW = huC.width, HH = huC.height;
+      const hg = d.createLinearGradient(0, 0, HW, 0);
+      ['#f00', '#ff0', '#0f0', '#0ff', '#00f', '#f0f', '#f00'].forEach((col, i) => hg.addColorStop(i / 6, col));
+      d.fillStyle = hg; d.fillRect(0, 0, HW, HH);
+      marker(d, (ph / 360) * HW, HH / 2);
+    };
+    const pLive = (skipHex) => {
+      const hx = pCur();
+      colorIn.value = hx;
+      customSw.style.background = hx;
+      if (!skipHex) hexIn.value = hx.toUpperCase();
+      clearTimeout(pTimer);
+      pTimer = setTimeout(() => applyTheme('personalizado:' + hx), 150);
+    };
+    const drag = (cv, fn) => {
+      const mv = (e) => { const r = cv.getBoundingClientRect(); fn(clamp((e.clientX - r.left) / r.width), clamp((e.clientY - r.top) / r.height)); pDraw(); pLive(); };
+      cv.addEventListener('pointerdown', (e) => { cv.setPointerCapture(e.pointerId); mv(e); cv.onpointermove = mv; });
+      cv.addEventListener('pointerup', () => { cv.onpointermove = null; });
+    };
+    drag(svC, (x, y) => { ps = x; pv = 1 - y; });
+    drag(huC, (x) => { ph = x * 360; });
+    hexIn.oninput = () => {
+      let t = hexIn.value.trim(); if (t[0] !== '#') t = '#' + t;
+      if (/^#[0-9a-f]{6}$/i.test(t)) { const o = hex2hsv(t); ph = o.h; ps = o.s; pv = o.v; pDraw(); pLive(true); }
+    };
+    const pClose = (ok) => {
+      if (!pOpen) return;
+      pOpen = false; pk.style.display = 'none';
+      clearTimeout(pTimer);
+      if (ok) { applyTheme('personalizado:' + pCur()); return; }
+      if (pPrev) {
+        if (pPrev.indexOf('personalizado:') !== 0) customSw.style.background = CONIC;
+        applyTheme(pPrev);
+      }
+    };
+    const pOpenFn = () => {
+      const sel = themesEl.querySelector('button.sel');
+      pPrev = sel ? (sel.dataset.custom ? 'personalizado:' + colorIn.value : sel.dataset.id) : null;
+      const o = hex2hsv(colorIn.value); ph = o.h; ps = o.s; pv = o.v;
+      okB.textContent = (customTx.textContent === 'Personalizado') ? 'Confirmar' : 'Confirm';
+      hexIn.value = colorIn.value.toUpperCase();
+      pDraw();
+      pk.style.display = 'block'; pOpen = true;
+      const r = customBtn.getBoundingClientRect(), w = pk.offsetWidth, h = pk.offsetHeight;
+      let left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8));
+      let top = r.bottom + 8; if (top + h > window.innerHeight - 8) top = Math.max(8, r.top - h - 8);
+      pk.style.left = left + 'px'; pk.style.top = top + 'px';
+    };
+    okB.onclick = () => pClose(true);
+    customBtn.onclick = () => { if (pOpen) pClose(false); else pOpenFn(); };
+    document.addEventListener('mousedown', (e) => { if (pOpen && !pk.contains(e.target) && !customBtn.contains(e.target)) pClose(false); }, true);
+    document.addEventListener('keydown', (e) => { if (pOpen && e.key === 'Escape') { e.stopPropagation(); pClose(false); } }, true);
+    window.updateCustomSwatch = (hex) => { colorIn.value = hex; customSw.style.background = hex; };
+    themesEl.appendChild(customBtn);
+    const setCustomLabel = (l) => { customTx.textContent = (l === 'es') ? 'Personalizado' : 'Custom'; };
+    if (window.chorusStart && window.chorusStart.getLanguage) window.chorusStart.getLanguage().then(setCustomLabel).catch(() => {});
+    if (window.chorusStart && window.chorusStart.onLanguage) window.chorusStart.onLanguage(setCustomLabel);
+
+    // este onclick reemplaza al anterior (el de mostrar nombres)
+    menuBtn.onclick = (e) => {
+      e.stopPropagation();
+      const open = menuEl.classList.toggle('open');
+      menuBtn.classList.toggle('on', open);
+    };
+    document.addEventListener('click', (e) => {
+      if (!menuEl.classList.contains('open')) return;
+      if (menuEl.contains(e.target) || e.target === menuBtn || menuBtn.contains(e.target)) return;
+      menuEl.classList.remove('open');
+      menuBtn.classList.remove('on');
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && menuEl.classList.contains('open')) {
+        menuEl.classList.remove('open');
+        menuBtn.classList.remove('on');
+      }
+    });
+
+    const optLabels = document.getElementById('opt-labels');
+    optLabels.checked = document.body.classList.contains('labels');
+    optLabels.onchange = () => {
+      document.body.classList.toggle('labels', optLabels.checked);
+      try { localStorage.setItem('chorus-labels', optLabels.checked ? '1' : '0'); } catch (e) {}
+    };
+    document.getElementById('opt-shortcuts').onchange = (e) => applyShortcuts(e.target.checked);
+    document.getElementById('opt-add').onchange = (e) => applyAdd(e.target.checked); // START_SIN_MAS
+    if (window.chorusStart && window.chorusStart.onTheme) window.chorusStart.onTheme((id) => applyTheme(id));
+
+    // PANEL_PERSONALIZAR: panel sin modo claro/oscuro
+function syncPrefs(p) {
+      document.getElementById('opt-downloads').checked = (p.showDownloads !== false);
+    }
+
+    function applyExtraLang(l) {
+      const es = (l === 'es');
+      const toolbar = document.getElementById('t-toolbar');
+      if (toolbar) toolbar.textContent = es ? 'Barra de herramientas' : 'Toolbar';
+      const ca = document.getElementById('opt-add'); if (ca && ca.parentNode) ca.parentNode.lastChild.textContent = ' ' + (es ? 'Mostrar el bot\u00f3n +' : 'Show the + button'); // START_SIN_MAS
+      const cb = document.getElementById('opt-downloads');
+      if (cb && cb.parentNode) cb.parentNode.lastChild.textContent = ' ' + (es ? 'Mostrar icono de descargas' : 'Show downloads icon');
+    }
+
+    document.getElementById('opt-downloads').onchange = (e) => {
+      if (window.chorusStart && window.chorusStart.setPref) window.chorusStart.setPref('showDownloads', e.target.checked);
+    };
+    let savedTheme = 'actual';
+    let savedShortcuts = true;
+    try {
+      savedTheme = localStorage.getItem(THEME_KEY) || 'actual';
+      savedShortcuts = localStorage.getItem(SHORTCUTS_KEY) !== '0';
+    } catch (e) {}
+    applyTheme(savedTheme);
+    applyShortcuts(savedShortcuts);
+    try { applyAdd(localStorage.getItem('still-add') !== '0'); } catch (e) { applyAdd(true); } // START_SIN_MAS
+    if (window.chorusStart && window.chorusStart.getPrefs) {
+      window.chorusStart.getPrefs().then((p) => { if (p) syncPrefs(p); });
+      window.chorusStart.onPrefs((p) => { if (p) syncPrefs(p); });
+    }
+  </script>
+<script>
+    // Idioma de la pantalla de inicio
+    const applyStartLang = (l) => {
+      setLang(l);
+      applyExtraLang(l);
+      document.title = L('newTab');
+      document.getElementById('labels-toggle').title = L('customize');
+      document.querySelector('#dialog h2').textContent = L('newShortcut');
+      document.getElementById('name').placeholder = L('namePlaceholder');
+      document.getElementById('url').placeholder = L('urlPlaceholder');
+      document.getElementById('cancel').textContent = L('cancel');
+      document.getElementById('save').textContent = L('add');
+      const titles = document.querySelectorAll('#menu .menu-title');
+      titles[0].textContent = L('theme');
+      titles[1].textContent = L('shortcuts');
+      const rows = document.querySelectorAll('#menu .row');
+      rows[0].lastChild.textContent = ' ' + L('showShortcuts');
+      rows[1].lastChild.textContent = ' ' + L('showNames');
+      document.querySelectorAll('#themes button').forEach((b) => { if (b.dataset.id) b.lastChild.textContent = L('theme_' + b.dataset.id); });
+      render();
+    };
+    window.chorusStart.getLanguage().then(applyStartLang);
+    window.chorusStart.onLanguage(applyStartLang);
   </script>
 </body>
 </html>

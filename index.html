@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -7,7 +7,7 @@
     body {
       margin: 0;
       background: #1a1a1a;
-      font-family: sans-serif;
+      font-family: 'Inter', sans-serif;
       overflow: hidden;
     }
     #tabbar {
@@ -222,9 +222,9 @@
       /* barra más rectangular */
     #address { border-radius: 8px; }
       /* tipografía */
-    body, input, button { font-family: 'Segoe UI', system-ui, sans-serif; }
+    body, input, button { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; }
       /* tipografía */
-    body, input, button { font-family: 'Segoe UI', system-ui, sans-serif; }
+    body, input, button { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; }
       /* estilo de pestaña de la captura */
     .tab { border-radius: 6px; padding: 0 8px 0 10px; }
     .tab:hover { background: #2f3033; }
@@ -256,6 +256,173 @@
     body.compact #toolbar button { width: 28px; height: 28px; }
     body.compact #toolbar svg { width: 16px; height: 16px; }
     body.compact #address { height: 26px; font-size: 12px; }
+    /* MODO_COMPACTO: barra de arriba mas baja */
+    body.compact #tabbar { height: 32px !important; }
+    body.compact .tab { width: 211px !important; flex: 0 1 211px !important; height: 26px !important; font-size: 12px; } /* MODO_COMPACTO_3 */
+    body.compact #newtab { width: 26px; height: 26px; }
+    body.compact #toolbar { height: 30px !important; }
+    body.compact #toolbar button { width: 28px; height: 28px; }
+    body.compact #toolbar svg { width: 18px; height: 18px; }
+    #toolbar #adblock svg { width: 18px; height: 18px; } /* ADBLOCK_GRANDE */
+    body.compact #toolbar #adblock svg { width: 20px; height: 20px; }
+    #toolbar #extmenu { display: flex; align-items: center; justify-content: center; padding: 0; } /* EXT_ICONO_GRANDE */
+    #toolbar #extmenu svg { width: 18px; height: 18px; }
+    body.compact #toolbar #extmenu svg { width: 20px; height: 20px; }
+    browser-action-list::part(action) { background-size: 18px 18px; background-position: center; background-repeat: no-repeat; }
+    body.compact browser-action-list::part(action) { background-size: 20px 20px; }
+    body.compact #address { height: 24px; font-size: 12px; }
+      .tab { user-select: none; }
+    .tab.dragging { position: relative; z-index: 10; box-shadow: 0 4px 14px rgba(0,0,0,0.5); cursor: grabbing; }
+      .tab.suspended .tab-title { opacity: 0.55; }
+  </style>
+<style>
+    /* temas: el tema Actual usa estos valores, que son los de siempre */
+    body {
+      --bg: #1e1f22; --text: #ffffff; --muted: #c4c7c5;
+      --tab-hover: #2f3033; --tab-active: #3c3d40; --tab-active-text: #f1f3f4;
+      --close-hover: #4a4b4f; --toolbar: #292a2d; --btn-text: #e3e3e3;
+      --btn-hover: #3a3b3f; --address-bg: #1e1f22; --ring: #5b9bff;
+    }
+    body { background: var(--bg); }
+    #tabbar { background: var(--toolbar); } /* TABBAR_COMO_TOOLBAR */
+    .tab { color: var(--muted); }
+    .tab:hover { background: var(--tab-hover); }
+    .tab.active { background: var(--tab-active); color: var(--tab-active-text); }
+    .tab.active:hover { background: var(--tab-active); }
+    .tab-close { color: var(--muted); }
+    .tab-close:hover { background: var(--close-hover); color: #ffffff; }
+    #newtab { color: var(--muted); }
+    #newtab:hover { background: var(--btn-hover); color: #ffffff; }
+    .tab-audio:hover { background: var(--close-hover); color: #ffffff; }
+    #toolbar { background: var(--toolbar); }
+    #toolbar button { color: var(--btn-text); }
+    #toolbar button:hover { background: var(--btn-hover); color: #ffffff; }
+    #address { background: var(--address-bg); color: var(--text); }
+    #address:focus { background: var(--address-bg); box-shadow: 0 0 0 2px var(--ring); }
+  </style>
+<script src="i18n.js"></script>
+<style>
+    /* animacion del icono de descargas */
+    #downloads { position: relative; overflow: hidden; }
+    #downloads::after {
+      content: '';
+      position: absolute;
+      left: 6px;
+      right: 6px;
+      bottom: 2px;
+      height: 2px;
+      border-radius: 1px;
+      background: var(--ring);
+      transform-origin: left;
+      transform: scaleX(var(--p, 0));
+      opacity: 0;
+      transition: transform 0.3s ease, opacity 0.2s ease;
+    }
+    #downloads.active { color: var(--ring); }
+    #downloads.active::after { opacity: 1; }
+    #downloads.indet::after { transform: none; animation: dl-indet 1.2s linear infinite; }
+    #downloads.active svg path:nth-child(-n+2) { animation: dl-bob 0.9s ease-in-out infinite; }
+    #downloads.done { color: var(--ring); }
+    #downloads.done svg { animation: dl-done 0.6s ease 3; }
+    @keyframes dl-bob { 0%, 100% { transform: translateY(-1.5px); } 50% { transform: translateY(2px); } }
+    @keyframes dl-done { 0% { transform: scale(1); } 40% { transform: scale(1.35); } 100% { transform: scale(1); } }
+    @keyframes dl-indet { 0% { transform: translateX(-100%) scaleX(0.4); } 100% { transform: translateX(200%) scaleX(0.4); } }
+  </style>
+<style>
+    /* candado de la barra de direcciones */
+    #addrwrap { position: relative; min-width: 0; }
+    #lock {
+      position: absolute;
+      left: 9px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: none;
+      pointer-events: auto;
+    }
+    #addrwrap.has-lock #lock { display: flex; }
+    #addrwrap.has-lock #address { padding-left: 32px; }
+    #lock svg, body.compact #lock svg { width: 14px; height: 14px; }
+    #lock.secure { color: var(--muted); }
+    #lock.insecure { color: #ff8a65; }
+  </style>
+<style>
+    /* indicador de carga en la pestaña */
+    .tab-icon .spinner {
+      width: 14px;
+      height: 14px;
+      box-sizing: border-box;
+      border: 2px solid var(--close-hover);
+      border-top-color: var(--ring);
+      border-radius: 50%;
+      animation: tab-spin 0.8s linear infinite;
+    }
+    @keyframes tab-spin { to { transform: rotate(360deg); } }
+  </style>
+<style>
+    /* barra de buscar en la pagina */
+    #findbar {
+      position: fixed;
+      top: 76px;
+      left: 0;
+      right: 0;
+      height: 36px;
+      display: none;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
+      padding: 0 12px;
+      box-sizing: border-box;
+      background: var(--toolbar);
+    }
+    #findbar.open { display: flex; }
+    #findinput {
+      width: 240px;
+      height: 26px;
+      border: none;
+      border-radius: 6px;
+      background: var(--address-bg);
+      color: var(--text);
+      padding: 0 10px;
+      box-sizing: border-box;
+      font-size: 13px;
+      outline: none;
+    }
+    #findinput:focus { box-shadow: 0 0 0 2px var(--ring); }
+    #findcount { min-width: 70px; text-align: right; color: var(--muted); font-size: 12px; }
+    #findbar button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--btn-text);
+      cursor: pointer;
+    }
+    #findbar button:hover { background: var(--btn-hover); color: #ffffff; }
+    #findbar svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  /* PESTANAS_MENU_DERECHO */
+  .tab.pinned { flex: 0 0 40px !important; width: 40px !important; min-width: 40px !important; max-width: 40px !important; }
+  .tab.pinned .tab-title, .tab.pinned .tab-close { display: none !important; }
+  </style>
+<link rel="stylesheet" href="fonts.css">
+<style>
+/* EXTENSIONES_BARRA */
+browser-action-list { display: flex; align-items: center; gap: 2px; margin-right: 2px; }
+browser-action-list::part(action) { width: 28px; height: 28px; border-radius: 6px; background-color: transparent; background-size: 18px 18px; background-position: center; background-repeat: no-repeat; } /* EXT_ICONO */
+browser-action-list::part(action):hover { background-color: var(--btn-hover, #3a3b3f); }
+body.no-extbar browser-action-list { display: none !important; } /* EXTENSIONES_APARIENCIA */
+body.no-extbtn #extmenu { display: none !important; } /* EXT_PIN */
+/* ICONOS_NAV_GRANDES: tamano de los iconos de la barra de navegacion (modo normal). Cambia estos dos numeros para ajustarlo. */
+  :root { --nav-btn: 29px; --nav-icon: 17px; }
+  body:not(.compact) #toolbar button { width: var(--nav-btn) !important; height: var(--nav-btn) !important; }
+  body:not(.compact) #toolbar button svg { width: var(--nav-icon) !important; height: var(--nav-icon) !important; }
+  body:not(.compact) #toolbar #adblock svg, body:not(.compact) #toolbar #extmenu svg { width: calc(var(--nav-icon) + 2px) !important; height: calc(var(--nav-icon) + 2px) !important; }
+  /* MARCO_FONDO: el margen del marco enseña el fondo de esta pagina; se pinta como la barra (sigue el tema) */
+  html { background: none !important; } body { background: var(--toolbar, #292a2d) !important; } /* MARCO_FONDO2 */
   </style>
 </head>
 <body>
@@ -275,8 +442,12 @@
         <svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.5-5.8"/><path d="M20 4v5h-5"/></svg>
       </button>
     </div>
-    <input id="address" type="text" placeholder="Busca o escribe una dirección">
+    <div id="addrwrap"><span id="lock"></span><input id="address" type="text" placeholder="Busca o escribe una dirección"></div>
     <div id="right">
+      <browser-action-list id="extbar" alignment="bottom right"></browser-action-list>
+      <button id="extmenu" title="Extensiones"><svg viewBox="0 -2 24 24"><path d="M10 4a2 2 0 1 1 4 0v1h3a1 1 0 0 1 1 1v3h-1a2 2 0 1 0 0 4h1v3a1 1 0 0 1-1 1h-3v-1a2 2 0 1 0-4 0v1H7a1 1 0 0 1-1-1v-3h1a2 2 0 1 0 0-4H6V6a1 1 0 0 1 1-1h3z"/></svg></button>
+      <button id="adblock" title="Bloqueador de anuncios"></button>
+      <button id="downloads" title="Descargas"><svg viewBox="0 0 24 24"><path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg></button>
       <button id="settings" title="Configuración"><svg viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></svg></button>
     </div>
   </div>
@@ -294,6 +465,42 @@
     document.getElementById('reload').onclick = () => window.chorus.reload();
     document.getElementById('newtab').onclick = () => window.chorus.newTab();
     document.getElementById('settings').onclick = () => window.chorus.openMenu();
+    document.getElementById('downloads').onclick = () => window.chorus.openDownloads();
+    let __dlAjustes = null; // DESCARGAS_AUTO DESCARGAS_AUTO_2
+let __dlPend = false;
+const aplicarDescargas = (s) => {
+  if (s) __dlAjustes = s;
+  const b = document.getElementById('downloads');
+  const a = __dlAjustes;
+  const oculto = !!(a && a.showDownloads === false);
+  const auto = !!(a && a.downloadsAuto === true);
+  if (!auto) __dlPend = false;
+  const activo = b.classList.contains('active') || b.classList.contains('done') || __dlPend;
+  b.classList.toggle('dl-pending', auto && __dlPend);
+  b.style.display = ((oculto || auto) && !activo) ? 'none' : ''; /* DL_POPUP */
+};
+try { new MutationObserver(() => { const b = document.getElementById('downloads'); if (b.classList.contains('done') && __dlAjustes && __dlAjustes.downloadsAuto === true) __dlPend = true; aplicarDescargas(); }).observe(document.getElementById('downloads'), { attributes: true, attributeFilter: ['class'] }); } catch (e) {}
+try { window.chorus.onDownloadsSeen(() => { __dlPend = false; aplicarDescargas(); }); } catch (e) {}
+try { const st = document.createElement('style'); st.textContent = '#downloads.dl-pending { color: var(--ring); }'; document.head.appendChild(st); } catch (e) {}
+    window.chorus.getSettings().then(aplicarDescargas);
+    window.chorus.onSettings(aplicarDescargas);
+    // ADBLOCK_BOTON
+    const SHIELD_ON = '<svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg>';
+    const SHIELD_OFF = '<svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z"/><path d="M4 4l16 16"/></svg>';
+    try { const st = document.createElement('style'); st.textContent = '#adblock.off { opacity: 0.55; }'; document.head.appendChild(st); } catch (e) {}
+    const aplicarAdblock = (s) => {
+      const b = document.getElementById('adblock');
+      if (!b) return;
+      const on = !(s && s.adblock === false);
+      const en = !!(s && s.language === 'en');
+      b.innerHTML = on ? SHIELD_ON : SHIELD_OFF;
+      b.classList.toggle('off', !on);
+      b.title = en ? (on ? 'Ad blocker: on. Click to turn off' : 'Ad blocker: off. Click to turn on')
+                   : (on ? 'Bloqueador de anuncios: activado. Clic para desactivar' : 'Bloqueador de anuncios: desactivado. Clic para activar');
+    };
+    document.getElementById('adblock').onclick = () => window.chorus.toggleAdblock();
+    window.chorus.getSettings().then(aplicarAdblock);
+    window.chorus.onSettings(aplicarAdblock);
     address.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') { window.chorus.navigate(address.value); address.blur(); }
     });
@@ -365,21 +572,24 @@
     }
 
     window.chorus.onTabsChange((tabs) => {
+      if (draggingTab) return;
       tabsEl.innerHTML = '';
       tabs.forEach((tab) => {
         const el = document.createElement('div');
-        el.className = 'tab' + (tab.active ? ' active' : '');
+        el.className = 'tab' + (tab.active ? ' active' : '') + (tab.suspended ? ' suspended' : '');
         el.title = tab.title;
         el.onclick = () => window.chorus.switchTab(tab.id);
+        el.draggable = false;
+        el.dataset.id = tab.id;
 
-        const icon = makeIcon(tab.favicon); if (tab.isStart) icon.innerHTML = START_ICON;
+        const icon = makeIcon(tab.favicon); if (tab.isStart) icon.innerHTML = START_ICON; if (tab.loading) icon.innerHTML = '<span class=spinner></span>';
 
         const title = document.createElement('span');
         title.className = 'tab-title';
         title.textContent = tab.title;
 
         el.appendChild(icon);
-        if (tab.audible || tab.muted) { const spk = document.createElement('button'); spk.className = 'tab-audio'; spk.title = tab.muted ? 'Activar sonido' : 'Silenciar pestaña'; spk.innerHTML = tab.muted ? MUTED_ICON : SPEAKER_ICON; spk.onclick = (e) => { e.stopPropagation(); window.chorus.toggleMute(tab.id); }; el.appendChild(spk); }
+        if (tab.audible || tab.muted) { const spk = document.createElement('button'); spk.className = 'tab-audio'; spk.title = tab.muted ? L('unmute') : L('mute'); spk.innerHTML = tab.muted ? MUTED_ICON : SPEAKER_ICON; spk.onclick = (e) => { e.stopPropagation(); window.chorus.toggleMute(tab.id); }; el.appendChild(spk); }
         el.appendChild(title);
 
         if (tab.audible) {
@@ -392,11 +602,13 @@
         const close = document.createElement('button');
         close.className = 'tab-close';
         close.innerHTML = CLOSE_ICON;
-        close.title = 'Cerrar pestaña';
+        close.title = L('closeTab');
         close.onclick = (e) => {
           e.stopPropagation();
           window.chorus.closeTab(tab.id);
         };
+        el.dataset.tabId = tab.id;
+        if (tab.pinned) { el.classList.add('pinned'); el.title = tab.title; }
         el.appendChild(close);
 
         tabsEl.appendChild(el);
@@ -404,14 +616,332 @@
       updateNarrow();
     });
 
+        // Arrastrar pestañas: la pestaña se pone encima de las demás y, al soltarla, se ordena
+    let draggingTab = null;
+    // PESTANAS_MENU_DERECHO
+    tabsEl.addEventListener('contextmenu', (e) => {
+      const el = e.target.closest && e.target.closest('.tab');
+      if (!el || !el.dataset.tabId) return;
+      e.preventDefault();
+      window.chorus.tabMenu(Number(el.dataset.tabId));
+    });
+    tabsEl.addEventListener('mousedown', (e) => {
+      if (e.button !== 0 || draggingTab) return;
+      const tab = e.target.closest && e.target.closest('.tab');
+      if (!tab || e.target.closest('.tab-close') || e.target.closest('.tab-audio')) return;
+      const list = [...tabsEl.querySelectorAll('.tab')];
+      const i = list.indexOf(tab);
+      const rects = list.map((t) => t.getBoundingClientRect());
+      const barra = document.getElementById('tabbar');
+      const startX = e.clientX;
+      const startY = e.clientY; // ARRASTRE_VERTICAL
+      const minDx = rects[0].left - rects[i].left;
+      const maxDx = rects[list.length - 1].right - rects[i].right;
+      let dx = 0;
+      let moving = false;
+      const gapTabs = list.length > 1 ? Math.max(0, rects[1].left - rects[0].right) : 0; // ANIMACION_ARRASTRE
+      const huecoTab = rects[i].width + gapTabs;
+      const animarOtras = (d) => {
+        let objetivo = i;
+        if (d > 0) {
+          const borde = rects[i].right + d;
+          list.forEach((t, j) => { if (j > i && rects[j].left + rects[j].width / 2 < borde) objetivo = j; });
+        } else if (d < 0) {
+          const borde = rects[i].left + d;
+          list.forEach((t, j) => { if (j < i && j < objetivo && rects[j].left + rects[j].width / 2 > borde) objetivo = j; });
+        }
+        list.forEach((t, j) => {
+          if (j === i) return;
+          let x = 0;
+          if (objetivo > i && j > i && j <= objetivo) x = -huecoTab;
+          else if (objetivo < i && j < i && j >= objetivo) x = huecoTab;
+          t.style.transition = 'transform 0.15s ease';
+          t.style.transform = x ? 'translateX(' + x + 'px)' : '';
+        });
+      };
+      const soltarOtras = () => {
+        list.forEach((t, j) => { if (j !== i) { t.style.transition = 'none'; t.style.transform = ''; } });
+        if (list[0]) list[0].getBoundingClientRect();
+        list.forEach((t, j) => { if (j !== i) t.style.transition = ''; });
+      };
+
+      const move = (ev) => {
+        dx = Math.max(minDx, Math.min(maxDx, ev.clientX - startX));
+        if (!moving) {
+          if (Math.abs(dx) < 5 && Math.abs(ev.clientY - startY) < 8) return;
+          moving = true;
+          draggingTab = tab;
+          tab.classList.add('dragging');
+          barra.style.webkitAppRegion = 'no-drag';
+        }
+        tab.style.transform = 'translateX(' + dx + 'px)';
+        animarOtras(dx);
+      };
+
+      const up = (ev) => {
+        document.removeEventListener('mousemove', move);
+        document.removeEventListener('mouseup', up);
+        barra.style.webkitAppRegion = '';
+        if (!moving) return;
+      if (ev) { // PESTANA_VENTANA
+        const bar = barra.getBoundingClientRect();
+        if (ev.clientX < -12 || ev.clientX > window.innerWidth + 12 || ev.clientY < -12 || ev.clientY > bar.bottom + 90) {
+          tab.classList.remove('dragging');
+          tab.style.transform = '';
+          draggingTab = null;
+          soltarOtras();
+          window.chorus.detachTab(Number(tab.dataset.id), ev.screenX, ev.screenY);
+          return;
+        }
+      }
+        let nuevo = i;
+        if (dx > 0) {
+          const borde = rects[i].right + dx;
+          list.forEach((t, j) => { if (j > i && rects[j].left + rects[j].width / 2 < borde) nuevo = j; });
+        } else if (dx < 0) {
+          const borde = rects[i].left + dx;
+          list.forEach((t, j) => { if (j < i && j < nuevo && rects[j].left + rects[j].width / 2 > borde) nuevo = j; });
+        }
+        const antes = tab.getBoundingClientRect().left;
+        const resto = list.filter((t) => t !== tab);
+        soltarOtras();
+        tabsEl.insertBefore(tab, resto[nuevo] || null);
+        tab.style.transition = 'none';
+        tab.style.transform = '';
+        const despues = tab.getBoundingClientRect().left;
+        tab.style.transform = 'translateX(' + (antes - despues) + 'px)';
+        tab.getBoundingClientRect();
+        tab.style.transition = 'transform 0.15s ease';
+        tab.style.transform = '';
+        setTimeout(() => {
+          tab.classList.remove('dragging');
+          tab.style.transition = '';
+          draggingTab = null;
+          window.chorus.reorderTabs([...tabsEl.querySelectorAll('.tab')].map((x) => Number(x.dataset.id)));
+        }, 170);
+      };
+
+      document.addEventListener('mousemove', move);
+      document.addEventListener('mouseup', up);
+    });
+
     window.addEventListener('resize', updateNarrow);
-    const aplicarAjustes = (s) => { document.body.classList.toggle('compact', !!(s && s.compact)); updateNarrow(); };
+    const aplicarAjustes = (s) => { document.body.classList.toggle('compact', !!(s && s.compact)); document.body.classList.toggle('no-extbar', !!(s && s.showExtensions === false)); /* EXTENSIONES_APARIENCIA */ updateNarrow(); };
+    try { window.chorus.onSettings(aplicarAjustes); window.chorus.getSettings().then(aplicarAjustes); } catch (e) {} // MODO_COMPACTO_2
+    // EXT_PIN: icono de puzle y extensiones fijadas
+    window.__extOcultas = [];
+    const ocultarExtensiones = () => {
+      try {
+        const el = document.getElementById('extbar');
+        const root = el && el.shadowRoot;
+        if (!root) return false;
+        let st = root.getElementById('ext-pin-style');
+        if (!st) { st = document.createElement('style'); st.id = 'ext-pin-style'; root.appendChild(st); }
+        st.textContent = (window.__extOcultas || []).filter((x) => /^[a-z0-9_-]{8,64}$/i.test(String(x))).map((x) => 'button[id="' + x + '"]{display:none!important}').join('');
+        return true;
+      } catch (e) { return false; }
+    };
+    const aplicarExt = (s) => {
+      try {
+        document.body.classList.toggle('no-extbtn', !!(s && s.showExtButton === false));
+        window.__extOcultas = (s && Array.isArray(s.hiddenExtensions)) ? s.hiddenExtensions : [];
+        ocultarExtensiones();
+      } catch (e) {}
+    };
+    try { document.getElementById('extmenu').onclick = () => window.chorus.openExtMenu(); } catch (e) {}
+    try { window.chorus.onSettings(aplicarExt); window.chorus.getSettings().then(aplicarExt); } catch (e) {}
+    let __extIntentos = 0;
+    const __extTimer = setInterval(() => { __extIntentos++; if ((ocultarExtensiones() && __extIntentos > 3) || __extIntentos > 80) clearInterval(__extTimer); }, 250);
     
     
     window.chorus.onFocusAddress(() => { address.focus(); address.select(); });
   </script>
+<script>
+    // Temas de la barra de direcciones y de las pestanas
+    const BAR_THEMES = {
+      grafito: { h: 0, s: 0, l: 7 },
+      oceano: { h: 215, s: 35, l: 12 },
+      bosque: { h: 150, s: 28, l: 11 },
+      violeta: { h: 265, s: 32, l: 13 },
+      ambar: { h: 30, s: 35, l: 12 },
+      rosa: { h: 335, s: 32, l: 13 }
+    };
+    const BAR_VARS = ['--bg', '--text', '--muted', '--tab-hover', '--tab-active', '--tab-active-text', '--close-hover', '--toolbar', '--btn-text', '--btn-hover', '--address-bg', '--ring'];
+    function customHsl(hex) {
+      if (!/^#[0-9a-f]{6}$/i.test(hex || '')) return null;
+      const n = parseInt(hex.slice(1), 16);
+      const r = ((n >> 16) & 255) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255;
+      const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+      let h = 0;
+      if (d) {
+        if (mx === r) h = ((g - b) / d) % 6; else if (mx === g) h = (b - r) / d + 2; else h = (r - g) / d + 4;
+        h *= 60; if (h < 0) h += 360;
+      }
+      const l = (mx + mn) / 2;
+      const sat = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
+      return { h: Math.round(h), s: sat < 0.08 ? 0 : Math.round(Math.min(45, 15 + sat * 30)), l: Math.round(7 + l * 15) };
+    }
+    function applyBarTheme(id, customColor) {
+      BAR_VARS.forEach((v) => document.body.style.removeProperty(v));
+      const t = (id === 'personalizado') ? customHsl(customColor) : BAR_THEMES[id];
+      if (!t) return;
+      const c = (l) => 'hsl(' + t.h + ' ' + t.s + '% ' + l + '%)';
+      const soft = (l) => 'hsl(' + t.h + ' ' + Math.min(t.s, 15) + '% ' + l + '%)';
+      const vals = {
+        '--bg': c(t.l),
+        '--text': '#f5f5f5',
+        '--muted': soft(76),
+        '--tab-hover': c(t.l + 8),
+        '--tab-active': c(t.l + 15),
+        '--tab-active-text': '#f5f5f5',
+        '--close-hover': c(t.l + 22),
+        '--toolbar': c(t.l + 5),
+        '--btn-text': soft(88),
+        '--btn-hover': c(t.l + 16),
+        '--address-bg': c(t.l),
+        '--ring': t.s === 0 ? 'hsl(0 0% 62%)' : 'hsl(' + t.h + ' 70% 62%)'
+      };
+      Object.keys(vals).forEach((k) => document.body.style.setProperty(k, vals[k]));
+      if (id === 'grafito') document.body.style.setProperty('--address-bg', '#3A3C3C'); // GRAFITO_DIRECCIONES
+    }
+    window.chorus.getSettings().then((s) => applyBarTheme(s && s.theme, s && s.customColor));
+    window.chorus.onSettings((s) => applyBarTheme(s && s.theme, s && s.customColor));
+  </script>
+<script>
+    // Idioma de la barra de direcciones y las pestanas
+    const applyIndexLang = (l) => {
+      setLang(l);
+      document.getElementById('newtab').title = L('newTab');
+      document.getElementById('back').title = L('back');
+      document.getElementById('forward').title = L('forward');
+      document.getElementById('reload').title = L('reload');
+      document.getElementById('downloads').title = L('downloads');
+      document.getElementById('settings').title = L('settings');
+      document.getElementById('address').placeholder = L('addressPlaceholder');
+      document.querySelectorAll('.tab-close').forEach((b) => { b.title = L('closeTab'); });
+    };
+    window.chorus.getSettings().then((s) => applyIndexLang(s && s.language));
+    window.chorus.onSettings((s) => applyIndexLang(s && s.language));
+  </script>
+<script>
+    // Animacion del icono de descargas
+    (function () {
+      const btn = document.getElementById('downloads');
+      let doneTimer = null;
+      const baseTitle = () => (typeof L === 'function' ? L('downloads') : 'Downloads');
+      window.chorus.onDownloadsState((s) => {
+        if (!s) return;
+        if (s.active > 0) {
+          clearTimeout(doneTimer);
+          btn.classList.remove('done');
+          btn.classList.add('active');
+          if (s.progress >= 0) {
+            btn.classList.remove('indet');
+            btn.style.setProperty('--p', String(s.progress));
+            btn.title = baseTitle() + ' (' + Math.round(s.progress * 100) + '%)';
+          } else {
+            btn.classList.add('indet');
+            btn.title = baseTitle();
+          }
+        } else {
+          btn.classList.remove('active', 'indet');
+          btn.style.removeProperty('--p');
+          btn.title = baseTitle();
+          if (s.completed) {
+            btn.classList.add('done');
+            clearTimeout(doneTimer);
+            doneTimer = setTimeout(() => btn.classList.remove('done'), 2500);
+          }
+        }
+      });
+    })();
+  </script>
+<script>
+    // Candado: https = seguro, http = aviso
+    (function () {
+      const wrap = document.getElementById('addrwrap');
+      const lock = document.getElementById('lock');
+      const CLOSED = '<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
+      const OPEN = '<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 7.5-1.9"/></svg>';
+      const LOCK_TEXT = {
+        en: { secure: 'Secure connection (HTTPS)', insecure: 'Not secure: this site does not use HTTPS' },
+        es: { secure: 'Conexi\u00f3n segura (HTTPS)', insecure: 'No seguro: esta web no usa HTTPS' }
+      };
+      let lang = 'es';
+      let lastUrl = '';
+      function updateLock(url) {
+        lastUrl = url || '';
+        let kind = '';
+        if (/^https:/i.test(lastUrl)) kind = 'secure';
+        else if (/^http:/i.test(lastUrl)) kind = 'insecure';
+        lock.className = kind;
+        lock.innerHTML = kind === 'secure' ? CLOSED : (kind === 'insecure' ? OPEN : '');
+        lock.title = kind ? (LOCK_TEXT[lang] || LOCK_TEXT.es)[kind] : '';
+        wrap.classList.toggle('has-lock', !!kind);
+      }
+      window.chorus.getSettings().then((s) => { lang = (s && s.language) || 'es'; updateLock(lastUrl); });
+      window.chorus.onSettings((s) => { lang = (s && s.language) || 'es'; updateLock(lastUrl); });
+      window.chorus.onUrlChange((url) => updateLock(url));
+    })();
+  </script>
+<div id="findbar">
+    <input id="findinput" type="text" spellcheck="false">
+    <span id="findcount"></span>
+    <button id="findprev"><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></button>
+    <button id="findnext"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+    <button id="findclose"><svg viewBox="0 0 24 24"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg></button>
+  </div>
+  <script>
+    // Buscar en la pagina
+    (function () {
+      const bar = document.getElementById('findbar');
+      const input = document.getElementById('findinput');
+      const count = document.getElementById('findcount');
+      const prev = document.getElementById('findprev');
+      const next = document.getElementById('findnext');
+      const closeBtn = document.getElementById('findclose');
+      const T = {
+        en: { ph: 'Find in page', prev: 'Previous (Shift+Enter)', next: 'Next (Enter)', close: 'Close (Esc)', none: 'No results' },
+        es: { ph: 'Buscar en la p\u00e1gina', prev: 'Anterior (May\u00fas+Enter)', next: 'Siguiente (Enter)', close: 'Cerrar (Esc)', none: 'Sin resultados' }
+      };
+      let lang = 'es';
+      function txt() { return T[lang] || T.es; }
+      function applyLang() {
+        const t = txt();
+        input.placeholder = t.ph; prev.title = t.prev; next.title = t.next; closeBtn.title = t.close;
+      }
+      function search(isNext, back) { window.chorus.findText(input.value, { next: isNext, backward: back }); }
+      window.chorus.getSettings().then((s) => { lang = (s && s.language) || 'es'; applyLang(); });
+      window.chorus.onSettings((s) => { lang = (s && s.language) || 'es'; applyLang(); });
+      applyLang();
+      window.chorus.onFindOpen(() => {
+        bar.classList.add('open');
+        input.focus();
+        input.select();
+        if (input.value) search(false, false);
+      });
+      window.chorus.onFindClosed(() => { bar.classList.remove('open'); count.textContent = ''; });
+      window.chorus.onFindResult((r) => {
+        if (!r || !r.final) return;
+        if (!input.value) count.textContent = '';
+        else if (!r.matches) count.textContent = txt().none;
+        else count.textContent = r.active + '/' + r.matches;
+      });
+      input.addEventListener('input', () => { count.textContent = ''; search(false, false); });
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); if (input.value) search(true, e.shiftKey); }
+        else if (e.key === 'Escape') window.chorus.findClose();
+      });
+      prev.onclick = () => { if (input.value) search(true, true); input.focus(); };
+      next.onclick = () => { if (input.value) search(true, false); input.focus(); };
+      closeBtn.onclick = () => window.chorus.findClose();
+    })();
+  </script>
 </body>
 </html>
+
+
+
 
 
 

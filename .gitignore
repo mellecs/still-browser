@@ -6,3 +6,13 @@ extensions-off/
 salida.txt
 errores.txt
 log.txt
+
+dist-log.txt
+build-log.txt
+salida-exe.txt
+*.log
+*.con-*
+*.roto
+*.nuevo
+*.version-nueva
+*.tar.gz

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Downloads</title>
+<style>/* TEMA_PAGINAS */
+body{margin:0;background:var(--t-bg,#1e1f22);color:#e3e3e3;font-family:'Inter', 'Segoe UI',system-ui,sans-serif}
+#wrap{max-width:820px;margin:0 auto;padding:28px 20px 60px}
+h1{font-size:22px;font-weight:600;margin:0 0 18px}
+#top{display:flex;gap:10px;margin-bottom:14px}
+#q{flex:1;height:36px;border:none;border-radius:8px;background:var(--t-surface,#292a2d);color:#fff;padding:0 14px;font-size:14px;outline:none}
+#q:focus{box-shadow:0 0 0 2px var(--t-accent,#5b9bff)}
+#clear{height:36px;padding:0 14px;border:none;border-radius:8px;background:var(--t-surface2,#3a3b3f);color:#e3e3e3;cursor:pointer;font-size:13px}
+#clear:hover{background:var(--t-line,#55565a)}
+.item{padding:12px 12px;border-radius:8px;margin-bottom:4px}
+.item:hover{background:var(--t-surface,#292a2d)}
+.name{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meta{font-size:12px;color:#9aa0a6;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar{height:4px;border-radius:2px;background:var(--t-surface2,#3a3b3f);margin-top:8px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--t-accent,#5b9bff)}
+.acts{margin-top:8px;display:flex;gap:8px}
+.acts button{height:28px;padding:0 12px;border:none;border-radius:6px;background:var(--t-surface2,#3a3b3f);color:#e3e3e3;cursor:pointer;font-size:12px}
+.acts button:hover{background:var(--t-line,#55565a)}
+#empty{color:#9aa0a6;margin-top:40px;text-align:center}
+</style>
+<script src="i18n.js"></script>
+<link rel="stylesheet" href="fonts.css">
+</head>
+<body>
+<div id="wrap">
+  <h1>Descargas</h1>
+  <div id="top">
+    <input id="q" type="text" placeholder="Buscar en las descargas">
+    <button id="clear">Borrar lista</button>
+  </div>
+  <div id="list"></div>
+</div>
+<script>
+const list = document.getElementById('list');
+const q = document.getElementById('q');
+let all = [];
+let lastKey = null;
+
+function fmt(b) {
+  if (!b || b < 0) return '';
+  const u = ['B', 'KB', 'MB', 'GB'];
+  let i = 0;
+  while (b >= 1024 && i < 3) { b /= 1024; i++; }
+  return b.toFixed(i ? 1 : 0) + ' ' + u[i];
+}
+function host(u) { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return ''; } }
+function estado(d) {
+  let s;
+  if (d.state === 'completed') s = L('completed') + ' \u00b7 ' + fmt(d.total || d.received);
+  else if (d.state === 'cancelled') s = L('cancelled');
+  else if (d.state === 'interrupted') s = L('interrupted');
+  else {
+    const pct = d.total > 0 ? Math.round(d.received / d.total * 100) + '% \u00b7 ' : '';
+    s = (d.state === 'paused' ? L('paused') + ' \u00b7 ' : '') + pct + fmt(d.received) + (d.total > 0 ? ' ' + L('of') + ' ' + fmt(d.total) : '');
+  }
+  const h = host(d.url);
+  return h ? s + ' \u00b7 ' + h : s;
+}
+function filtrados() {
+  const term = q.value.trim().toLowerCase();
+  return all.filter((d) => !term || d.name.toLowerCase().includes(term) || d.url.toLowerCase().includes(term));
+}
+function pintar() {
+  const items = filtrados();
+  const key = q.value + '|' + items.map((d) => d.id + d.state).join(',');
+  if (key === lastKey) {
+    items.forEach((d) => {
+      const row = list.querySelector('[data-id="' + d.id + '"]');
+      if (!row) return;
+      row.querySelector('.meta').textContent = estado(d);
+      const bar = row.querySelector('.bar i');
+      if (bar) bar.style.width = (d.total > 0 ? Math.min(100, d.received / d.total * 100) : 0) + '%';
+    });
+    return;
+  }
+  lastKey = key;
+  list.innerHTML = '';
+  if (!items.length) {
+    const e = document.createElement('div');
+    e.id = 'empty';
+    e.textContent = q.value.trim() ? L('noResults') : L('noDownloads');
+    list.appendChild(e);
+    return;
+  }
+  items.forEach((d) => {
+    const row = document.createElement('div');
+    row.className = 'item';
+    row.dataset.id = d.id;
+
+    const name = document.createElement('div');
+    name.className = 'name';
+    name.textContent = d.name;
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    meta.textContent = estado(d);
+    row.appendChild(name);
+    row.appendChild(meta);
+
+    const enCurso = d.state === 'progressing' || d.state === 'paused';
+    if (enCurso) {
+      const bar = document.createElement('div');
+      bar.className = 'bar';
+      const fill = document.createElement('i');
+      fill.style.width = (d.total > 0 ? Math.min(100, d.received / d.total * 100) : 0) + '%';
+      bar.appendChild(fill);
+      row.appendChild(bar);
+    }
+
+    const acts = document.createElement('div');
+    acts.className = 'acts';
+    const boton = (texto, fn) => {
+      const b = document.createElement('button');
+      b.textContent = texto;
+      b.onclick = fn;
+      acts.appendChild(b);
+    };
+    if (d.state === 'completed') {
+      boton(L('open'), () => window.downloadsApi.open(d.id).then((err) => {
+        if (err) alert(L('openFail'));
+      }));
+      boton(L('showInFolder'), () => window.downloadsApi.show(d.id));
+    }
+    if (enCurso) boton(L('cancel'), () => window.downloadsApi.cancel(d.id));
+    else boton(L('removeFromList'), () => window.downloadsApi.remove(d.id).then(cargar));
+    row.appendChild(acts);
+    list.appendChild(row);
+  });
+}
+function cargar() { window.downloadsApi.get().then((l) => { all = l; pintar(); }); }
+q.addEventListener('input', pintar);
+document.getElementById('clear').onclick = () => {
+  if (confirm(L('clearConfirm'))) window.downloadsApi.clear().then(cargar);
+};
+window.addEventListener('focus', cargar);
+setInterval(cargar, 1000);
+cargar();
+</script>
+<script>
+  (function () {
+    const apply = (l) => {
+      setLang(l);
+      document.title = L('downloads');
+      document.querySelector('h1').textContent = L('downloads');
+      document.getElementById('q').placeholder = L('searchDownloads');
+      document.getElementById('clear').textContent = L('clearList');
+      lastKey = null;
+      cargar();
+    };
+    window.downloadsApi.getLanguage().then(apply);
+    window.downloadsApi.onLanguage(apply);
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  :root {
+    --bg: #292a2d; --hover: #3a3b3f; --border: #3c3d40;
+    --text: #ffffff; --muted: #c4c7c5; --accent: #5b9bff;
+  }
+  html, body { margin: 0; height: 100%; background: transparent; overflow: hidden;
+    font: 13px 'Inter', 'Segoe UI', system-ui, sans-serif; color: var(--text); user-select: none; }
+  #backdrop { position: fixed; inset: 0; }
+  #panel {
+    position: absolute; top: 72px; right: 8px; width: 280px;
+    max-height: calc(100vh - 88px); overflow-y: auto; box-sizing: border-box;
+    padding: 12px; border-radius: 16px;
+    background: var(--bg); border: 1px solid var(--border);
+    box-shadow: 0 10px 32px rgba(0,0,0,0.55);
+    animation: pop 0.12s ease-out; transform-origin: top right;
+    scrollbar-width: thin; scrollbar-color: rgba(140,140,140,0.55) transparent;
+  }
+  @keyframes pop { from { opacity: 0; transform: scale(0.96) translateY(-4px); } to { opacity: 1; transform: none; } }
+  .row {
+    display: flex; align-items: center; gap: 12px; min-height: 34px;
+    padding: 0 8px; border-radius: 8px; box-sizing: border-box; cursor: pointer;
+  }
+  .row:hover { background: var(--hover); }
+  .row.disabled { opacity: 0.4; cursor: default; }
+  .row.disabled:hover { background: transparent; }
+  .row svg.ico { width: 18px; height: 18px; flex: none; fill: none; stroke: var(--muted);
+    stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .row .lbl { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row .hint { color: var(--muted); font-size: 12px; }
+  .sep { height: 1px; margin: 10px 0; background: var(--border); }
+  .section { padding: 4px 2px 8px; font-size: 13px; color: var(--muted); cursor: default; }
+  .chips { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 4px; }
+  .chip {
+    display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 12px;
+    box-sizing: border-box; border-radius: 8px; cursor: pointer; font-weight: 600;
+    background: color-mix(in srgb, var(--text) 7%, var(--bg));
+    border: 2px solid transparent;
+  }
+  .chip:hover { background: color-mix(in srgb, var(--text) 12%, var(--bg)); }
+  .chip.on { border-color: var(--accent); }
+  .chip .dot { width: 16px; height: 16px; flex: none; border-radius: 50%; box-sizing: border-box; }
+  .chip .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .check {
+    display: flex; align-items: center; gap: 10px; min-height: 30px; padding: 0 2px;
+    border-radius: 6px; cursor: pointer;
+  }
+  .check.indent { padding-left: 28px; }
+  .check .box {
+    width: 18px; height: 18px; flex: none; box-sizing: border-box; border-radius: 4px;
+    border: 2px solid var(--muted); display: flex; align-items: center; justify-content: center;
+  }
+  .check .box svg { width: 12px; height: 12px; fill: none; stroke: #ffffff; stroke-width: 3;
+    stroke-linecap: round; stroke-linejoin: round; display: none; }
+  .check.on .box { background: var(--accent); border-color: var(--accent); }
+  .check.on .box svg { display: block; }
+  .check .lbl { flex: 1; min-width: 0; font-weight: 600; }
+</style>
+<link rel="stylesheet" href="fonts.css">
+</head>
+<body>
+<div id="backdrop"></div>
+<div id="panel"></div>
+<script>
+  const ICONS = {
+    settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+    history: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  extPuzzle: '<path d="M10 4a2 2 0 1 1 4 0v1h3a1 1 0 0 1 1 1v3h-1a2 2 0 1 0 0 4h1v3a1 1 0 0 1-1 1h-3v-1a2 2 0 1 0-4 0v1H7a1 1 0 0 1-1-1v-3h1a2 2 0 1 0 0-4H6V6a1 1 0 0 1 1-1h3z"/>',
+  extBack: '<path d="M19 12H5"/><path d="M12 5l-7 7 7 7"/>',
+  extStore: '<path d="M4 9l1-5h14l1 5"/><path d="M5 9v10h14V9"/><path d="M9 19v-5h6v5"/>',
+    downloads: '<path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/>',
+    print: '<path d="M7 9V4h10v5"/><rect x="5" y="9" width="14" height="8" rx="2"/><path d="M8 14h8v6H8z"/>',
+    reset: '<path d="M20 12a8 8 0 1 1-2.5-5.8"/><path d="M20 4v5h-5"/>',
+    duplicate: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/>',
+    pin: '<path d="M12 17v5"/><path d="M9 4h6"/><path d="M10 4l-.5 6L7 13h10l-2.5-3L14 4"/>',
+    mute: '<path d="M11 5L6 9H3v6h3l5 4z"/><path d="M16 9l5 6"/><path d="M21 9l-5 6"/>',
+    unmute: '<path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/>',
+    closeOthers: '<path d="M5 4l6 6"/><path d="M11 4l-6 6"/><path d="M13 14l6 6"/><path d="M19 14l-6 6"/>',
+    close: '<path d="M6 6l12 12"/><path d="M18 6L6 18"/>'
+  };
+  const panel = document.getElementById('panel');
+  const NS = 'http://www.w3.org/2000/svg';
+  const svgIcon = (name) => {
+    const s = document.createElementNS(NS, 'svg');
+    s.setAttribute('viewBox', '0 0 24 24');
+    s.setAttribute('class', 'ico');
+    s.innerHTML = ICONS[name] || '';
+    return s;
+  };
+  function checkSvg() {
+    const s = document.createElementNS(NS, 'svg');
+    s.setAttribute('viewBox', '0 0 24 24');
+    s.innerHTML = '<path d="M5 12.5l4.5 4.5L19 7.5"/>';
+    return s;
+  }
+  function render(data) {
+    const th = data.theme || {};
+    const r = document.documentElement.style;
+    Object.keys(th).forEach((k) => r.setProperty('--' + k, th[k]));
+    const keep = panel.scrollTop;
+    panel.innerHTML = '';
+    data.items.forEach((it) => {
+      if (it.type === 'separator') {
+        const d = document.createElement('div'); d.className = 'sep'; panel.appendChild(d);
+      } else if (it.type === 'label') {
+        const d = document.createElement('div'); d.className = 'section'; d.textContent = it.label; panel.appendChild(d);
+      } else if (it.type === 'chips') {
+        const g = document.createElement('div'); g.className = 'chips';
+        it.options.forEach((o) => {
+          const c = document.createElement('div');
+          c.className = 'chip' + (o.value === it.value ? ' on' : '');
+          if (o.color) {
+            const dot = document.createElement('span');
+            dot.className = 'dot';
+            dot.style.background = o.color;
+            if (o.ring) dot.style.border = '1px solid ' + o.ring;
+            c.appendChild(dot);
+          }
+          const n = document.createElement('span'); n.className = 'name'; n.textContent = o.label; c.appendChild(n);
+          c.onclick = () => { if (o.value !== it.value) window.menuApi.click(it.id, o.value); };
+          g.appendChild(c);
+        });
+        panel.appendChild(g);
+      } else if (it.type === 'checkbox') {
+        const c = document.createElement('div');
+        c.className = 'check' + (it.checked ? ' on' : '') + (it.indent ? ' indent' : '');
+        const b = document.createElement('span'); b.className = 'box'; b.appendChild(checkSvg()); c.appendChild(b);
+        const l = document.createElement('span'); l.className = 'lbl'; l.textContent = it.label; c.appendChild(l);
+        c.onclick = () => window.menuApi.click(it.id, !it.checked);
+        panel.appendChild(c);
+      } else {
+        const row = document.createElement('div');
+        row.className = 'row';
+        row.appendChild(svgIcon(it.icon));
+        const l = document.createElement('span'); l.className = 'lbl'; l.textContent = it.label; row.appendChild(l);
+        if (it.hint) { const h = document.createElement('span'); h.className = 'hint'; h.textContent = it.hint; row.appendChild(h); }
+        if (it.disabled) row.classList.add('disabled'); else row.onclick = () => window.menuApi.click(it.id);
+        panel.appendChild(row);
+      }
+    });
+    panel.scrollTop = keep;
+    if (data.pos) {
+      panel.style.right = 'auto';
+      panel.style.width = '224px';
+      panel.style.transformOrigin = 'top left';
+      const w = panel.offsetWidth, h = panel.offsetHeight;
+      panel.style.left = Math.max(8, Math.min(data.pos.x, window.innerWidth - w - 8)) + 'px';
+      panel.style.top = Math.max(8, Math.min(data.pos.y, window.innerHeight - h - 8)) + 'px';
+    } else {
+      ['left', 'top', 'right', 'width', 'transformOrigin'].forEach((p) => { panel.style[p] = ''; });
+    }
+  }
+  window.menuApi.onData(render);
+  document.getElementById('backdrop').addEventListener('mousedown', () => window.menuApi.close());
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') window.menuApi.close(); });
+</script>
+</body>
+</html>

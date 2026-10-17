@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Settings</title>
+<style>/* TEMA_PAGINAS */
+*{box-sizing:border-box}
+body{margin:0;background:var(--t-bg,#1e1f22);color:#e3e3e3;font-family:'Inter', 'Segoe UI',system-ui,sans-serif}
+#app{display:flex;max-width:960px;margin:0 auto;padding:28px 20px 60px;gap:32px}
+#side{width:200px;flex:none}
+h1{font-size:22px;font-weight:600;margin:0 0 18px;padding-left:12px}
+.nav{display:block;width:100%;text-align:left;border:none;background:none;color:#c4c7c5;font-size:14px;padding:10px 12px;border-radius:8px;cursor:pointer;margin-bottom:2px}
+.nav:hover{background:var(--t-surface,#292a2d)}
+.nav.sel{background:var(--t-surface2,#3a3b3f);color:#fff}
+#content{flex:1;min-width:0;max-width:600px}
+h2{font-size:18px;font-weight:600;margin:6px 0 10px}
+.desc{color:#9aa0a6;font-size:13px;margin:0 0 16px;line-height:1.45}
+.row{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:14px;border-radius:10px;background:var(--t-surface,#292a2d);margin-bottom:8px}
+.tt{font-size:14px}
+.ds{font-size:12px;color:#9aa0a6;margin-top:3px;line-height:1.4}
+.switch{flex:none;width:40px;height:22px;border-radius:11px;border:none;background:var(--t-line,#55565a);position:relative;cursor:pointer;padding:0}
+.switch i{position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .15s}
+.switch.on{background:var(--t-accent,#5b9bff)}
+.switch.on i{left:21px}
+.opts{display:flex;flex-direction:column;gap:6px}
+.opt{text-align:left;border:2px solid transparent;border-radius:10px;background:var(--t-surface,#292a2d);color:#e3e3e3;font-size:14px;padding:12px 14px;cursor:pointer}
+.opt:hover{background:var(--t-hover,#333438)}
+.opt.sel{border-color:var(--t-accent,#5b9bff)}
+.btn{flex:none;height:32px;padding:0 14px;border:none;border-radius:8px;background:var(--t-surface2,#3a3b3f);color:#e3e3e3;cursor:pointer;font-size:13px}
+.btn:hover{background:var(--t-line,#55565a)}
+.txt{flex:none;width:240px;height:32px;padding:0 10px;border:2px solid transparent;border-radius:8px;background:var(--t-bg,#1e1f22);color:#e3e3e3;font-size:13px;outline:none}
+.txt:focus{border-color:var(--t-accent,#5b9bff)}
+@media (max-width:640px){#app{flex-direction:column;gap:12px}#side{width:auto}}
+</style>
+<link rel="stylesheet" href="fonts.css">
+</head>
+<body>
+<div id="app">
+  <nav id="side"><h1 id="h"></h1><div id="tabs"></div></nav>
+  <main id="content"></main>
+</div>
+<script>
+const SECTIONS = ['search', 'startup', 'privacy', 'appearance', 'system', 'language'];
+const T = {
+  es: {
+    title: 'Ajustes', search: 'Buscador', privacy: 'Privacidad', system: 'Sistema', language: 'Idioma',
+    startup: 'Al iniciar', startupDesc: 'Elige qu\u00e9 se abre cuando arrancas Still.',
+    stContinue: 'Continuar donde lo dejaste', stHome: 'Abrir la pantalla de inicio', stPage: 'Abrir una p\u00e1gina concreta',
+    stPageUrl: 'Direcci\u00f3n de la p\u00e1gina', stPageHint: 'Solo se admiten direcciones http o https. Pulsa Intro para guardar.',
+    searchDesc: 'Se usa cuando escribes texto en la barra de direcciones y al buscar con el bot\u00f3n derecho.',
+    fp: 'Protecci\u00f3n contra la huella digital',
+    fpDesc: 'Dificulta que las webs te identifiquen por las caracter\u00edsticas de tu equipo. Si una web falla, prueba a desactivarla.',
+    ck: 'Cookies', ckDesc: 'Cookies: elige cuales aceptan las webs. Con "Todas" no se conservan sesiones iniciadas y se borran las cookies actuales.', ckAllow: 'Permitir cookies', ckThird: 'Bloquear las de terceros', ckAll: 'Bloquear todas',
+    coe: 'Borrar datos al cerrar', coeDesc: 'Al cerrar Still se borran cookies, cach\u00e9, historial y pesta\u00f1as guardadas. Con esto activado no se conservan las sesiones iniciadas.',
+    perms: 'Restablecer los permisos de los sitios', permsBtn: 'Restablecer',
+    permsConfirm: '\u00bfRestablecer los permisos de todos los sitios?',
+    hw: 'Usar aceleraci\u00f3n de hardware',
+    hwDesc: 'Usa la tarjeta gr\u00e1fica para que las p\u00e1ginas vayan m\u00e1s fluidas. Si ves fallos gr\u00e1ficos, desact\u00edvala. Se aplica al reiniciar Still.',
+    langDesc: 'Cambia el idioma de los men\u00fas y de las p\u00e1ginas internas.'
+  },
+  en: {
+    title: 'Settings', search: 'Search engine', privacy: 'Privacy', system: 'System', language: 'Language',
+    startup: 'On startup', startupDesc: 'Choose what opens when Still starts.',
+    stContinue: 'Continue where you left off', stHome: 'Open the start screen', stPage: 'Open a specific page',
+    stPageUrl: 'Page address', stPageHint: 'Only http or https addresses are allowed. Press Enter to save.',
+    searchDesc: 'Used when you type text in the address bar and when searching from the right-click menu.',
+    fp: 'Fingerprinting protection',
+    fpDesc: 'Makes it harder for websites to identify you by your device characteristics. If a site breaks, try turning it off.',
+    ck: 'Cookies', ckDesc: 'Cookies: choose which ones sites can use. With "Block all" you will not stay signed in and current cookies are deleted.', ckAllow: 'Allow cookies', ckThird: 'Block third-party', ckAll: 'Block all',
+    coe: 'Clear data on exit', coeDesc: 'When Still closes, cookies, cache, history and saved tabs are deleted. With this on, you will not stay signed in.',
+    perms: 'Reset site permissions', permsBtn: 'Reset',
+    permsConfirm: 'Reset the permissions of all sites?',
+    hw: 'Use hardware acceleration',
+    hwDesc: 'Uses the graphics card to make pages smoother. If you see graphical glitches, turn it off. Applies when Still restarts.',
+    langDesc: 'Changes the language of menus and internal pages.'
+  }
+};
+let state = null;
+let lang = 'en';
+let current = 'search';
+if (location.hash && SECTIONS.indexOf(location.hash.slice(1)) !== -1) current = location.hash.slice(1);
+
+function $(id) { return document.getElementById(id); }
+function t(k) { return (T[lang] || T.en)[k] || k; }
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text) e.textContent = text;
+  return e;
+}
+function setting(key, value) {
+  return window.settingsApi.set(key, value).then((s) => {
+    if (s) { state = s; lang = s.language; render(); }
+  });
+}
+function toggle(on, fn) {
+  const b = el('button', 'switch' + (on ? ' on' : ''));
+  b.setAttribute('role', 'switch');
+  b.setAttribute('aria-checked', on ? 'true' : 'false');
+  b.appendChild(document.createElement('i'));
+  b.onclick = () => fn(!on);
+  return b;
+}
+function row(title, desc, control) {
+  const r = el('div', 'row');
+  const left = el('div');
+  left.appendChild(el('div', 'tt', title));
+  if (desc) left.appendChild(el('div', 'ds', desc));
+  r.appendChild(left);
+  r.appendChild(control);
+  return r;
+}
+function options(list, value, fn) {
+  const box = el('div', 'opts');
+  list.forEach((o) => {
+    const b = el('button', 'opt' + (o.id === value ? ' sel' : ''), o.name);
+    b.onclick = () => fn(o.id);
+    box.appendChild(b);
+  });
+  return box;
+}
+// NAVEGADOR_PREDETERMINADO: fila con el boton que abre la pantalla de Windows
+function filaPredeterminado() {
+  const es = (lang === 'es');
+  const b = el('button', 'btn', es ? 'Abrir ajustes de Windows' : 'Open Windows settings');
+  b.onclick = () => { try { window.settingsApi.defaultBrowser(); } catch (e) {} };
+  return row(
+    es ? 'Navegador predeterminado' : 'Default browser',
+    es ? 'Windows no permite que Still se ponga como predeterminado por su cuenta. Este bot\u00f3n abre la pantalla de Windows donde puedes elegirlo.' : 'Windows does not let an app make itself the default. This button opens the Windows screen where you can choose Still.',
+    b
+  );
+}
+function render() {
+  document.title = t('title');
+  document.documentElement.lang = lang;
+  $('h').textContent = t('title');
+  const side = $('tabs');
+  side.innerHTML = '';
+  SECTIONS.forEach((id) => {
+    const b = el('button', 'nav' + (id === current ? ' sel' : ''), (id === 'appearance' ? (lang === 'es' ? 'Apariencia' : 'Appearance') : t(id)));
+    b.onclick = () => { current = id; render(); };
+    side.appendChild(b);
+  });
+  const c = $('content');
+  c.innerHTML = '';
+  c.appendChild(el('h2', '', (current === 'appearance' ? (lang === 'es' ? 'Apariencia' : 'Appearance') : t(current))));
+  if (!state) return;
+  if (current === 'system') c.appendChild(filaPredeterminado()); // NAVEGADOR_PREDETERMINADO
+  if (current === 'search') {
+    c.appendChild(el('p', 'desc', t('searchDesc')));
+    c.appendChild(options(state.engines, state.searchEngine, (v) => setting('searchEngine', v)));
+  } else if (current === 'privacy') {
+    c.appendChild(row(t('fp'), t('fpDesc'), toggle(state.fingerprint, (v) => setting('fingerprint', v))));
+    c.appendChild(row(t('coe'), t('coeDesc'), toggle(state.clearOnExit === true, (v) => setting('clearOnExit', v))));
+    const ckd = el('p', 'desc', t('ckDesc')); ckd.style.marginTop = '18px'; c.appendChild(ckd);
+    c.appendChild(options([
+      { id: 'permitir', name: t('ckAllow') },
+      { id: 'terceros', name: t('ckThird') },
+      { id: 'todas', name: t('ckAll') }
+    ], state.cookieMode || 'terceros', (v) => setting('cookieMode', v))).style.marginBottom = '16px'; // ESPACIO_COOKIES
+    const btn = el('button', 'btn', t('permsBtn'));
+    btn.onclick = () => { if (confirm(t('permsConfirm'))) setting('resetPerms', true); };
+    c.appendChild(row(t('perms'), '', btn));
+  } else if (current === 'startup') {
+    c.appendChild(el('p', 'desc', t('startupDesc')));
+    c.appendChild(options([
+      { id: 'continue', name: t('stContinue') },
+      { id: 'home', name: t('stHome') },
+      { id: 'page', name: t('stPage') }
+    ], state.startup, (v) => setting('startup', v)));
+    if (state.startup === 'page') {
+      const inp = el('input', 'txt');
+      inp.type = 'text';
+      inp.placeholder = 'https://example.com';
+      inp.value = state.startupUrl || '';
+      const guardar = () => setting('startupUrl', inp.value);
+      inp.onchange = guardar;
+      inp.onkeydown = (e) => { if (e.key === 'Enter') guardar(); };
+      const sep = el('div'); sep.style.height = '10px'; c.appendChild(sep);
+      c.appendChild(row(t('stPageUrl'), t('stPageHint'), inp));
+    }
+  } else if (current === 'appearance') { // APARIENCIA_PESTANA
+    c.appendChild(row(lang === 'es' ? 'Marco redondeado alrededor de la p\u00e1gina' : 'Rounded frame around the page', lang === 'es' ? 'Deja un margen con esquinas redondeadas alrededor del contenido web. Se aplica al momento.' : 'Leaves a margin with rounded corners around the web content. Applies immediately.', toggle(state.roundedFrame !== false, (v) => setting('roundedFrame', v)))); // MARCO_AJUSTE
+    const es = (lang === 'es');
+    c.appendChild(row(es ? 'Modo compacto' : 'Compact mode', es ? 'Hace m\u00e1s bajas la barra de pesta\u00f1as y la de direcciones.' : 'Makes the tab bar and the address bar shorter.', toggle(state.compact === true, (v) => setting('compact', v)))); // MODO_COMPACTO
+    c.appendChild(row(es ? 'Mostrar el icono de extensiones' : 'Show the extensions icon', es ? 'El bot\u00f3n con forma de puzle que abre la lista de extensiones.' : 'The puzzle button that opens the list of extensions.', toggle(state.showExtButton !== false, (v) => setting('showExtButton', v)))); // EXT_PIN
+    c.appendChild(row(es ? 'Mostrar las extensiones fijadas en la barra' : 'Show pinned extensions in the toolbar', es ? 'Los iconos de las extensiones que has fijado, junto a la barra de direcciones.' : 'The icons of the extensions you pinned, next to the address bar.', toggle(state.showExtensions !== false, (v) => setting('showExtensions', v)))); // EXTENSIONES_APARIENCIA
+    c.appendChild(row(es ? 'Icono de descargas solo al descargar' : 'Show downloads icon only while downloading', es ? 'El icono aparece cuando empieza una descarga y se queda resaltado hasta que abres Descargas.' : 'The icon appears when a download starts and stays highlighted until you open Downloads.', toggle(state.downloadsAuto === true, (v) => setting('downloadsAuto', v))));
+  } else if (current === 'system') {
+    c.appendChild(row(t('hw'), t('hwDesc'), toggle(state.hardwareAcceleration, (v) => setting('hardwareAcceleration', v))));
+    c.appendChild(row(lang === 'es' ? 'Preguntar d\u00f3nde guardar cada archivo' : 'Ask where to save each file', lang === 'es' ? 'Antes de cada descarga se abre la ventana de Windows para elegir carpeta y nombre.' : 'Before each download, Windows shows a window to choose the folder and name.', toggle(state.askSaveDownloads === true, (v) => setting('askSaveDownloads', v)))); // PREGUNTAR_DONDE_GUARDAR
+    { // CARPETA_DESCARGAS
+      const esd = (lang === 'es');
+      const bx = el('div'); bx.style.display = 'flex'; bx.style.gap = '8px';
+      const bc = el('button', 'btn', esd ? 'Elegir carpeta' : 'Choose folder');
+      bc.onclick = () => { try { window.settingsApi.pickDownloadsDir().then((st) => { if (st) { state = st; lang = st.language; render(); } }); } catch (e) {} };
+      bx.appendChild(bc);
+      if (state.downloadsDirCustom) { const br = el('button', 'btn', esd ? 'Restablecer' : 'Reset'); br.onclick = () => setting('downloadsDir', ''); bx.appendChild(br); }
+      c.appendChild(row(esd ? 'Carpeta de descargas' : 'Downloads folder', (esd ? 'Los archivos se guardan en: ' : 'Files are saved in: ') + (state.downloadsDir || ''), bx));
+    }
+  } else if (current === 'language') {
+    c.appendChild(el('p', 'desc', t('langDesc')));
+    c.appendChild(options([{ id: 'en', name: 'English' }, { id: 'es', name: 'Espa\u00f1ol' }], state.language, (v) => setting('language', v)));
+  }
+}
+function load() {
+  if (!window.settingsApi) { $('content').textContent = 'No se pudo cargar los ajustes (preload).'; return; }
+  window.settingsApi.get().then((s) => {
+    if (s) { state = s; lang = s.language; }
+    render();
+  });
+}
+window.addEventListener('focus', load);
+if (window.settingsApi) {
+  window.settingsApi.onLanguage((l) => { if (l === 'es' || l === 'en') lang = l; load(); });
+}
+render();
+load();
+</script>
+</body>
+</html>
