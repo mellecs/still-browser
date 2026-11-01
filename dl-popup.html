@@ -7,41 +7,69 @@
   html, body { margin: 0; background: transparent; overflow: hidden;
     font: 13px 'Inter', 'Segoe UI', system-ui, sans-serif; color: var(--text); user-select: none; }
   body { padding: 8px; }
-  #panel { box-sizing: border-box; padding: 10px; border-radius: 16px; background: var(--bg);
-    border: 1px solid var(--border); box-shadow: 0 10px 32px rgba(0,0,0,0.55); }
-  .head { display: flex; align-items: center; justify-content: space-between; padding: 2px 4px 8px; font-weight: 600; }
-  .x { width: 24px; height: 24px; border: 0; border-radius: 6px; background: transparent;
-    color: var(--muted); cursor: pointer; font-size: 18px; line-height: 24px; padding: 0; }
-  .x:hover { background: var(--hover); color: var(--text); }
-  .item { padding: 8px 6px; }
-  .item + .item { border-top: 1px solid var(--border); }
+  html:has(body.lat) { height: 100%; }
+  body.lat { height: 100%; box-sizing: border-box; display: flex; flex-direction: column; justify-content: flex-end; }
+  #panel { box-sizing: border-box; padding: 8px; border-radius: 16px; background: var(--bg);
+    border: 1px solid var(--border); box-shadow: 0 1px 6px rgba(0,0,0,0.4); }
+  svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+  .head { display: flex; align-items: center; justify-content: space-between; padding: 4px 4px 8px 10px; font-size: 14px; font-weight: 600; }
+  .rb { width: 30px; height: 30px; border: 0; border-radius: 8px; background: transparent; color: var(--muted);
+    cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; }
+  .rb:hover { background: color-mix(in srgb, var(--text) 14%, transparent); color: var(--text); }
+  .item { display: block; padding: 8px 8px 10px; border-radius: 12px; }
+  .item.click { cursor: pointer; }
+  .item:hover { background: var(--hover); }
+  .row { display: flex; align-items: center; gap: 10px; }
+  .ico { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    color: var(--accent); background: color-mix(in srgb, var(--accent) 16%, transparent); flex: none; }
+  .mid { flex: 1; min-width: 0; }
   .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
-  .sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
-  .bar { height: 4px; border-radius: 2px; background: var(--hover); margin-top: 6px; overflow: hidden; }
+  .sub { color: var(--muted); font-size: 12px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .acts { display: flex; gap: 2px; flex: none; }
+  .bar { height: 3px; border-radius: 2px; background: color-mix(in srgb, var(--text) 16%, transparent); margin-top: 8px; overflow: hidden; }
   .bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width 0.3s; }
   .bar.indet i { width: 40%; animation: ind 1.1s ease-in-out infinite alternate; }
   @keyframes ind { from { margin-left: 0; } to { margin-left: 60%; } }
-  .acts { display: flex; gap: 14px; margin-top: 6px; }
-  .link { border: 0; background: transparent; color: var(--accent); cursor: pointer; padding: 2px 0; font: inherit; }
-  .link:hover { text-decoration: underline; }
-  .empty { padding: 14px 6px; color: var(--muted); }
-  .all { display: block; width: 100%; margin-top: 6px; height: 34px; border: 0; border-radius: 8px;
-    background: var(--hover); color: var(--text); font: inherit; font-weight: 600; cursor: pointer; }
-  .all:hover { filter: brightness(1.2); }
+  .empty { padding: 14px 10px; color: var(--muted); }
+  .sep { height: 1px; background: var(--border); margin: 4px 8px; }
+  .foot { display: flex; width: 100%; box-sizing: border-box; align-items: center; justify-content: space-between; border: 0;
+    background: transparent; color: var(--text); font: inherit; font-weight: 500; padding: 11px 10px; border-radius: 10px; cursor: pointer; text-align: left; }
+  .foot:hover { background: var(--hover); }
+  .foot svg { color: var(--muted); }
 </style>
 </head>
 <body>
 <div id="panel"></div>
 <script>
+  /* DL_V2 */
   const api = window.dlApi;
   const panel = document.getElementById('panel');
+  window.__dlAnim = (lat) => { document.body.classList.toggle('lat', !!lat); };
   let es = true, key = '', refs = {}, lastH = 0;
-  const T = (a, b) => (es ? a : b); const applyTheme = (th) => { try { const r = document.documentElement.style; Object.keys(th || {}).forEach((k) => r.setProperty('--' + k, th[k])); } catch (e) {} };
+  const T = (a, b) => (es ? a : b);
+  const applyTheme = (th) => { try { const r = document.documentElement.style; Object.keys(th || {}).forEach((k) => r.setProperty('--' + k, th[k])); } catch (e) {} };
+  const P = {
+    close: '<circle cx="12" cy="12" r="9"/><path d="M9 9l6 6"/><path d="M15 9l-6 6"/>',
+    folder: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+    open: '<path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/>',
+    pause: '<rect x="7" y="5" width="3.5" height="14" rx="1" fill="currentColor" stroke="none"/><rect x="13.5" y="5" width="3.5" height="14" rx="1" fill="currentColor" stroke="none"/>',
+    play: '<path d="M8 5l11 7-11 7z" fill="currentColor" stroke="none"/>',
+    doc: '<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/>',
+    zip: '<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><path d="M11 10h2"/><path d="M11 13h2"/><path d="M11 16h2"/>'
+  };
+  const svg = (p) => '<svg viewBox="0 0 24 24">' + p + '</svg>';
   function el(tag, cls, text) {
     const e = document.createElement(tag);
     if (cls) e.className = cls;
     if (text != null) e.textContent = text;
     return e;
+  }
+  function rb(p, title, fn) {
+    const b = el('button', 'rb');
+    b.innerHTML = svg(p);
+    b.title = title;
+    b.onclick = (e) => { e.stopPropagation(); fn(); };
+    return b;
   }
   function fmt(n) {
     if (!(n > 0)) return '0 B';
@@ -50,8 +78,14 @@
     while (n >= 1024 && i < 3) { n /= 1024; i++; }
     return n.toFixed(i ? 1 : 0) + ' ' + u[i];
   }
+  function pair(r, t) {
+    const u = ['B', 'KB', 'MB', 'GB'];
+    let i = 0, x = t;
+    while (x >= 1024 && i < 3) { x /= 1024; i++; }
+    const f = (n) => { const v = n / Math.pow(1024, i); return (v >= 100 || i === 0) ? String(Math.round(v)) : v.toFixed(1); };
+    return f(r) + '/' + f(t) + ' ' + u[i];
+  }
   function pct(it) { return it.total > 0 ? Math.min(100, Math.round((it.received / it.total) * 100)) : 0; }
-  /* ETA_DESCARGA: velocidad medida entre actualizaciones y tiempo restante */
   const spd = {};
   function track(it) {
     const now = Date.now(); const s = spd[it.id];
@@ -64,42 +98,73 @@
   }
   function etaText(it) {
     const s = spd[it.id];
-    if (!s || !(s.v > 1)) return T('calculando\u2026', 'calculating\u2026');
+    if (!s || !(s.v > 1)) return T('Calculando\u2026', 'Calculating\u2026');
     const sec = Math.max(1, Math.ceil((it.total - it.received) / s.v));
-    let t;
-    if (sec < 60) t = sec + ' s';
-    else if (sec < 3600) t = Math.ceil(sec / 60) + ' min';
+    let t, one = false;
+    if (sec < 60) { one = sec === 1; t = sec + (es ? (one ? ' segundo' : ' segundos') : (one ? ' second' : ' seconds')); }
+    else if (sec < 3600) { const m = Math.ceil(sec / 60); one = m === 1; t = m + (es ? (one ? ' minuto' : ' minutos') : (one ? ' minute' : ' minutes')); }
     else t = Math.floor(sec / 3600) + ' h ' + Math.ceil((sec % 3600) / 60) + ' min';
-    return es ? 'quedan ' + t : t + ' left';
+    return es ? (one ? 'Queda ' : 'Quedan ') + t : t + ' left';
+  }
+  function ago(ms) {
+    if (!ms) return '';
+    const m = Math.floor((Date.now() - ms) / 60000);
+    if (m < 1) return T('Hace unos segundos', 'A few seconds ago');
+    if (m === 1) return T('Hace 1 minuto', '1 minute ago');
+    return es ? 'Hace ' + m + ' minutos' : m + ' minutes ago';
   }
   function subText(it) {
+    const dot = ' \u00b7 ';
     if (it.state === 'progressing' || it.state === 'paused') {
-      let s = it.total > 0 ? fmt(it.received) + ' / ' + fmt(it.total) + ' (' + pct(it) + '%)' : fmt(it.received);
-      if (it.state === 'progressing' && it.total > 0) s += ' \u00b7 ' + etaText(it);
-      if (it.state === 'paused') s += ' \u00b7 ' + T('En pausa', 'Paused');
+      let s = '\u2193 ' + (it.total > 0 ? pair(it.received, it.total) : fmt(it.received));
+      if (it.state === 'paused') return s + dot + T('En pausa', 'Paused');
+      if (it.total > 0) s += dot + etaText(it);
       return s;
     }
-    if (it.state === 'completed') return T('Completada', 'Completed') + (it.total > 0 ? ' \u00b7 ' + fmt(it.total) : '');
+    if (it.state === 'completed') return fmt(it.total > 0 ? it.total : it.received) + (it.end ? dot + ago(it.end) : '');
     if (it.state === 'cancelled') return T('Cancelada', 'Cancelled');
     return T('Interrumpida', 'Interrupted');
   }
-  function link(text, fn) { const b = el('button', 'link', text); b.onclick = fn; return b; }
+  function speedText(it) {
+    const sp = spd[it.id];
+    return (it.state === 'progressing' && sp && sp.v > 1) ? fmt(sp.v) + '/s' : '\u00a0';
+  }
   function build(d) {
     refs = {};
     panel.textContent = '';
     const head = el('div', 'head');
-    head.appendChild(el('span', '', T('Descargas', 'Downloads')));
-    const x = el('button', 'x', '\u00d7');
-    x.onclick = () => api.close();
-    head.appendChild(x);
+    head.appendChild(el('span', '', T('Historial de descargas recientes', 'Recent download history')));
+    head.appendChild(rb(P.close, T('Cerrar', 'Close'), () => api.close()));
     panel.appendChild(head);
     if (!d.items.length) panel.appendChild(el('div', 'empty', T('No hay descargas', 'No downloads')));
     d.items.forEach((it) => {
-      const row = el('div', 'item');
-      row.appendChild(el('div', 'name', it.name));
-      const sub = el('div', 'sub', subText(it));
-      row.appendChild(sub);
       const act = it.state === 'progressing' || it.state === 'paused';
+      const done = it.state === 'completed';
+      const row = el('div', 'item' + (done ? ' click' : ''));
+      if (done) row.onclick = () => api.open(it.id);
+      const top = el('div', 'row');
+      const ico = el('div', 'ico');
+      ico.innerHTML = svg(/\.(zip|rar|7z|gz|tar|xz|bz2)$/i.test(it.name) ? P.zip : P.doc);
+      top.appendChild(ico);
+      const mid = el('div', 'mid');
+      const nm = el('div', 'name', it.name);
+      nm.title = it.name;
+      mid.appendChild(nm);
+      const sub = el('div', 'sub', subText(it));
+      mid.appendChild(sub);
+      let spdEl = null;
+      if (act) { spdEl = el('div', 'sub', speedText(it)); mid.appendChild(spdEl); }
+      top.appendChild(mid);
+      const acts = el('div', 'acts');
+      if (act) {
+        acts.appendChild(rb(it.state === 'paused' ? P.play : P.pause, it.state === 'paused' ? T('Reanudar', 'Resume') : T('Pausar', 'Pause'), () => api.pause(it.id)));
+        acts.appendChild(rb(P.close, T('Cancelar', 'Cancel'), () => api.cancel(it.id)));
+      } else if (done) {
+        acts.appendChild(rb(P.folder, T('Mostrar en carpeta', 'Show in folder'), () => api.show(it.id)));
+        acts.appendChild(rb(P.open, T('Abrir', 'Open'), () => api.open(it.id)));
+      }
+      top.appendChild(acts);
+      row.appendChild(top);
       let fill = null;
       if (act) {
         const bar = el('div', 'bar');
@@ -108,20 +173,16 @@
         bar.appendChild(fill);
         row.appendChild(bar);
       }
-      const acts = el('div', 'acts');
-      if (act) acts.appendChild(link(T('Cancelar', 'Cancel'), () => api.cancel(it.id)));
-      else if (it.state === 'completed') {
-        acts.appendChild(link(T('Abrir', 'Open'), () => api.open(it.id)));
-        acts.appendChild(link(T('Mostrar en carpeta', 'Show in folder'), () => api.show(it.id)));
-      }
-      if (acts.children.length) row.appendChild(acts);
-      refs[it.id] = { sub: sub, fill: fill };
+      refs[it.id] = { sub: sub, spd: spdEl, fill: fill };
       panel.appendChild(row);
     });
-    const all = el('button', 'all', T('Ver todas las descargas', 'See all downloads'));
-    all.onclick = () => api.all();
-    panel.appendChild(all);
-    const h = Math.ceil(panel.getBoundingClientRect().height) + 16;
+    panel.appendChild(el('div', 'sep'));
+    const foot = el('button', 'foot');
+    foot.appendChild(el('span', '', T('Historial de descargas completo', 'Full download history')));
+    foot.insertAdjacentHTML('beforeend', svg(P.open));
+    foot.onclick = () => api.all();
+    panel.appendChild(foot);
+    const h = panel.offsetHeight + 16;
     if (h !== lastH) { lastH = h; api.size(h); }
   }
   api.onData((d) => {
@@ -132,6 +193,7 @@
       const r = refs[it.id];
       if (!r) return;
       r.sub.textContent = subText(it);
+      if (r.spd) r.spd.textContent = speedText(it);
       if (r.fill && it.total > 0) r.fill.style.width = pct(it) + '%';
     });
   });

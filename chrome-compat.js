@@ -94,3 +94,36 @@ function ocultaFedCM() {
     webFrame.executeJavaScript('(' + ocultaFedCM.toString() + ')()');
   } catch (e) {}
 })();
+// YT_PRUNE: quita los datos de anuncios de las respuestas de YouTube antes de que el reproductor los lea (como uBlock)
+function podaYT() {
+  try {
+    const KEYS = ['adPlacements', 'playerAds', 'adSlots'];
+    const poda = (o) => {
+      try {
+        if (!o || typeof o !== 'object') return o;
+        const lim = (x) => { if (x && typeof x === 'object') KEYS.forEach((k) => { if (k in x) { try { delete x[k]; } catch (e) {} } }); };
+        lim(o);
+        lim(o.playerResponse);
+        if (Array.isArray(o)) o.forEach((e) => { if (e) { lim(e); lim(e.playerResponse); } });
+      } catch (e) {}
+      return o;
+    };
+    const jp = JSON.parse;
+    JSON.parse = function () { return poda(jp.apply(this, arguments)); };
+    const rj = Response.prototype.json;
+    Response.prototype.json = function () { return rj.apply(this, arguments).then(poda); };
+    let val;
+    Object.defineProperty(window, 'ytInitialPlayerResponse', {
+      configurable: true,
+      get() { return val; },
+      set(v) { val = poda(v); }
+    });
+  } catch (e) {}
+}
+(function () {
+  try {
+    if (!/^https?:$/.test(location.protocol)) return;
+    if (/^accounts\./i.test(location.hostname)) return;
+    { let on = true; try { on = require('electron').ipcRenderer.sendSync('yt-skip-enabled') !== false; } catch (e) {} if (on && /(^|\.)(youtube\.com|youtube-nocookie\.com)$/i.test(location.hostname)) webFrame.executeJavaScript('(' + podaYT.toString() + ')()'); } /* YT_SKIP_SYNC */
+  } catch (e) {}
+})();

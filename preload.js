@@ -4,7 +4,7 @@ contextBridge.exposeInMainWorld('chorus', {
   navigate: (url) => ipcRenderer.send('navigate', url),
   back: () => ipcRenderer.send('back'),
   forward: () => ipcRenderer.send('forward'),
-  reload: () => ipcRenderer.send('reload'),
+  reload: () => ipcRenderer.send('reload'), stop: () => ipcRenderer.send('stop'), // PARAR_CARGA
   findText: (text, opts) => ipcRenderer.send('find-text', text, opts),
   findClose: () => ipcRenderer.send('find-close'),
   onFindOpen: (callback) => ipcRenderer.on('find-open', () => callback()),
@@ -13,9 +13,11 @@ contextBridge.exposeInMainWorld('chorus', {
   newTab: () => ipcRenderer.send('new-tab'),
   toggleMute: (id) => ipcRenderer.send('toggle-mute', id),
   onFocusAddress: (callback) => ipcRenderer.on('focus-address', () => callback()),
-  openMenu: () => ipcRenderer.send('open-menu'),
-  openDownloads: () => ipcRenderer.send('open-downloads'),
+  openMenu: () => ipcRenderer.send('open-menu'), toggleSidebar: () => ipcRenderer.send('toggle-sidebar'), /* BOTON_BARRA_LATERAL */ onSidebarState: (callback) => ipcRenderer.on('sidebar-state', (_event, v) => callback(v)), getSidebarState: () => ipcRenderer.invoke('sidebar-get'), // BARRA_LATERAL_OCULTA
+  openDownloads: () => ipcRenderer.send('open-downloads'), splitDrop: (id, side) => ipcRenderer.send('split-drop', Number(id), side), splitHint: (side, id, title, icon) => ipcRenderer.send('split-hint', side, Number(id), String(title || ''), String(icon || '')), sidebarWidthGet: () => ipcRenderer.invoke('sidebar-width-get'), sidebarWidthSet: (w, commit) => ipcRenderer.send('sidebar-width', w, !!commit), onSidebarWidth: (cb) => ipcRenderer.on('sidebar-width-changed', (_e, w) => cb(w)), /* SB_ANCHO */
   toggleAdblock: () => ipcRenderer.send('toggle-adblock'), // ADBLOCK_BOTON
+  extContextMenu: (id, x, y) => ipcRenderer.send('ext-context-menu', String(id), Number(x) || 0, Number(y) || 0), // EXT_CLIC_DERECHO
+  openAdblockPanel: (x, y) => ipcRenderer.send('adblock-panel-open', x, y), // ADBLOCK_PANEL
   onDownloadsState: (callback) => ipcRenderer.on('downloads-state', (_event, s) => callback(s)),
   onDownloadsSeen: (callback) => ipcRenderer.on('downloads-seen', () => callback()), // DESCARGAS_AUTO_2
   getSettings: () => ipcRenderer.invoke('get-settings'),
@@ -25,7 +27,8 @@ contextBridge.exposeInMainWorld('chorus', {
   closeTab: (id) => ipcRenderer.send('close-tab', id),
   tabMenu: (id) => ipcRenderer.send('tab-menu', id),
   reorderTabs: (ids) => ipcRenderer.send('reorder-tabs', ids),
-  detachTab: (id, x, y) => ipcRenderer.send('detach-tab', id, x, y),
+  tabUsage: (id) => ipcRenderer.invoke('tab-usage', id),
+  detachTab: (id, x, y) => ipcRenderer.send('detach-tab', id, x, y), openSiteInfo: (x, y) => ipcRenderer.send('site-info-open', x, y), detachStart: (id, x, y) => ipcRenderer.send('detach-start', id, x, y), detachMove: (x, y) => ipcRenderer.send('detach-move', x, y), detachEnd: (x, y) => ipcRenderer.send('detach-end', x, y),
   onUrlChange: (callback) =>
     ipcRenderer.on('url-changed', (_event, url) => callback(url)),
   onTabsChange: (callback) =>

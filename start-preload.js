@@ -9,6 +9,8 @@ if (location.protocol === 'file:') {
     editShortcut: (id, name, url) => ipcRenderer.invoke('edit-shortcut', id, name, url), // EDITAR_ACCESO
     reorderShortcuts: (ids) => ipcRenderer.invoke('reorder-shortcuts', ids),
     setTheme: (id) => ipcRenderer.invoke('set-theme', id),
+    getMode: () => ipcRenderer.invoke('start-get-mode'),
+    setMode: (m) => ipcRenderer.invoke('start-set-mode', m),
     getPrefs: () => ipcRenderer.invoke('start-get-prefs'),
     setPref: (key, value) => ipcRenderer.invoke('start-set-pref', key, value),
     onPrefs: (callback) => ipcRenderer.on('prefs-changed', (_event, p) => callback(p)),

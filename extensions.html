@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Extensions</title>
+<style>/* TEMA_PAGINAS */
+body{margin:0;background:var(--t-bg,#1e1f22);color:#e3e3e3;font-family:'Inter', 'Segoe UI',system-ui,sans-serif}
+#wrap{max-width:820px;margin:0 auto;padding:28px 20px 60px}
+h1{font-size:22px;font-weight:600;margin:0 0 18px}
+#q{width:100%;box-sizing:border-box;height:36px;border:none;border-radius:18px;background:var(--t-surface,#292a2d);color:#fff;padding:0 16px;font-size:14px;outline:none;margin-bottom:8px}
+#q:focus{box-shadow:0 0 0 2px var(--t-accent,#5b9bff)}
+h2{font-size:15px;font-weight:600;margin:26px 0 10px}
+.card{display:flex;align-items:center;gap:14px;padding:14px 16px;margin-bottom:10px;border-radius:12px;background:var(--t-surface,#292a2d);position:relative}
+.ico{flex:none;width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:var(--t-surface2,#3a3b3f);overflow:hidden}
+.ico img{width:32px;height:32px;display:block}
+.info{flex:1;min-width:0}
+.name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.desc{font-size:12px;color:#9aa0a6;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.switch{flex:none;width:40px;height:22px;border-radius:11px;border:none;background:var(--t-line,#55565a);position:relative;cursor:pointer;padding:0}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .12s}
+.switch.on{background:var(--t-accent,#5b9bff)}
+.switch.on::after{left:21px}
+.dots{flex:none;width:30px;height:30px;border:none;border-radius:50%;background:transparent;color:#e3e3e3;cursor:pointer;font-size:18px;line-height:1}
+.dots:hover{background:var(--t-surface2,#3a3b3f)}
+.menu{position:absolute;right:14px;top:50px;z-index:5;min-width:190px;padding:6px;border-radius:12px;border:1px solid rgba(255,255,255,0.12);background:var(--t-bg,#1e1f22);box-shadow:0 12px 32px rgba(0,0,0,0.45)}
+.menu div{padding:8px 10px;border-radius:8px;font-size:13px;cursor:pointer}
+.menu div:hover{background:rgba(255,255,255,0.10)}
+.menu div.dis{opacity:.4;cursor:default}
+#empty{color:#9aa0a6;margin-top:40px;text-align:center}
+</style>
+<script src="i18n.js"></script>
+<link rel="stylesheet" href="fonts.css">
+</head>
+<body>
+<div id="wrap">
+  <h1 id="h"></h1>
+  <input id="q" type="text">
+  <div id="list"></div>
+</div>
+<script>
+const api = window.extApi;
+let es = true, items = [], confirmId = '', openId = '';
+const T = () => es
+  ? { title: 'Gestionar extensiones', search: 'Buscar extensiones', on: 'Activadas', off: 'Desactivadas', opts: 'Opciones', rm: 'Desinstalar', sure: '\u00bfSeguro? Pulsa otra vez', fixed: 'Incluida (no se puede quitar)', none: 'No hay extensiones instaladas' }
+  : { title: 'Manage extensions', search: 'Search extensions', on: 'Enabled', off: 'Disabled', opts: 'Options', rm: 'Uninstall', sure: 'Sure? Click again', fixed: 'Built in (cannot be removed)', none: 'No extensions installed' };
+const q = document.getElementById('q'), list = document.getElementById('list');
+const act = (p) => p.then((s) => { if (s) { es = s.es; items = s.items; } confirmId = ''; openId = ''; draw(); }).catch(() => {});
+function card(e, t) {
+  const c = document.createElement('div'); c.className = 'card';
+  const ic = document.createElement('div'); ic.className = 'ico';
+  if (e.icon) { const im = document.createElement('img'); im.src = e.icon; ic.appendChild(im); } else ic.textContent = (e.name || '?').charAt(0).toUpperCase();
+  const inf = document.createElement('div'); inf.className = 'info';
+  const n = document.createElement('div'); n.className = 'name'; n.textContent = e.name;
+  const d = document.createElement('div'); d.className = 'desc'; d.textContent = e.description || '';
+  inf.appendChild(n); inf.appendChild(d);
+  const sw = document.createElement('button'); sw.className = 'switch' + (e.enabled ? ' on' : '');
+  sw.onclick = () => act(api.toggle(e.id));
+  const dots = document.createElement('button'); dots.className = 'dots'; dots.textContent = '\u22EF';
+  dots.onclick = (ev) => { ev.stopPropagation(); openId = (openId === e.id) ? '' : e.id; confirmId = ''; draw(); };
+  c.appendChild(ic); c.appendChild(inf); c.appendChild(sw); c.appendChild(dots);
+  if (openId === e.id) {
+    const m = document.createElement('div'); m.className = 'menu';
+    const o = document.createElement('div'); o.textContent = t.opts; if (!e.options) o.className = 'dis'; else o.onclick = () => { api.options(e.id); openId = ''; draw(); };
+    const r = document.createElement('div');
+    if (!e.removable) { r.textContent = t.fixed; r.className = 'dis'; }
+    else { r.textContent = (confirmId === e.id) ? t.sure : t.rm; r.onclick = (ev) => { ev.stopPropagation(); if (confirmId !== e.id) { confirmId = e.id; draw(); } else act(api.remove(e.id)); }; }
+    m.appendChild(o); m.appendChild(r); c.appendChild(m);
+  }
+  return c;
+}
+function draw() {
+  const t = T();
+  document.getElementById('h').textContent = t.title;
+  q.placeholder = t.search;
+  document.title = t.title;
+  list.innerHTML = '';
+  const f = q.value.trim().toLowerCase();
+  const vis = items.filter((e) => !f || (e.name + ' ' + (e.description || '')).toLowerCase().includes(f));
+  if (!vis.length) { const em = document.createElement('div'); em.id = 'empty'; em.textContent = t.none; list.appendChild(em); return; }
+  [[true, t.on], [false, t.off]].forEach((g) => {
+    const arr = vis.filter((e) => e.enabled === g[0]);
+    if (!arr.length) return;
+    const h = document.createElement('h2'); h.textContent = g[1]; list.appendChild(h);
+    arr.forEach((e) => list.appendChild(card(e, t)));
+  });
+}
+q.oninput = draw;
+document.addEventListener('click', () => { if (openId) { openId = ''; draw(); } });
+const cargar = () => act(api.get());
+try { api.onLanguage(cargar); } catch (e) {}
+draw(); cargar();
+</script>
+</body>
+</html>

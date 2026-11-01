@@ -1,0 +1,91 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  :root { --bg: #292a2d; --hover: #3a3b3f; --border: #3c3d40; --text: #ffffff; --muted: #c4c7c5; --accent: #5b9bff; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+    font: 13px 'Inter', 'Segoe UI', system-ui, sans-serif; user-select: none; overflow: hidden; }
+  body { display: flex; flex-direction: column; align-items: center; }
+  svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+  .x { position: absolute; top: 12px; right: 12px; width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent;
+    color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
+  .x:hover { background: var(--hover); color: var(--text); }
+  h1 { font-size: 15px; font-weight: 600; margin: 72px 56px 22px; text-align: center; }
+  .list { box-sizing: border-box; width: min(460px, calc(100% - 48px)); max-height: calc(100% - 170px); overflow-y: auto;
+    display: flex; flex-direction: column; gap: 4px; padding: 8px; border-radius: 16px;
+    background: color-mix(in srgb, var(--text) 5%, transparent); border: 1px solid var(--border); }
+  .card { display: flex; align-items: center; gap: 12px; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 0;
+    border-radius: 10px; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+  .card:hover { background: var(--hover); }
+  .ico { width: 40px; height: 40px; border-radius: 10px; background: color-mix(in srgb, var(--text) 9%, transparent);
+    display: flex; align-items: center; justify-content: center; flex: none; color: var(--muted); }
+  .ico img { width: 20px; height: 20px; border-radius: 4px; }
+  .mid { min-width: 0; flex: 1; }
+  .t { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .h { color: var(--muted); font-size: 12px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sep { height: 1px; background: var(--border); margin: 2px 8px; flex: none; }
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+</style>
+</head>
+<body>
+<button class="x" id="x"></button>
+<h1 id="h"></h1>
+<div class="list" id="list"></div>
+<script>
+  /* SPLIT_PICKER */
+  const api = window.splitApi;
+  let es = true;
+  const T = (a, b) => (es ? a : b);
+  const P_CLOSE = '<svg viewBox="0 0 24 24"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg>';
+  const P_DOC = '<svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/></svg>';
+  const P_PLUS = '<svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>';
+  function applyTheme(th) { try { const r = document.documentElement.style; Object.keys(th || {}).forEach((k) => r.setProperty('--' + k, th[k])); } catch (e) {} }
+  function iconFor(it) {
+    const box = document.createElement('div');
+    box.className = 'ico';
+    if (it && it.favicon && /^(https?:|data:image\/)/i.test(it.favicon)) {
+      const img = document.createElement('img');
+      img.alt = '';
+      img.referrerPolicy = 'no-referrer';
+      img.onerror = () => { box.innerHTML = P_DOC; };
+      img.src = it.favicon;
+      box.appendChild(img);
+    } else box.innerHTML = it ? P_DOC : P_PLUS;
+    return box;
+  }
+  function card(ico, title, sub, fn) {
+    const b = document.createElement('button');
+    b.className = 'card';
+    b.appendChild(ico);
+    const mid = document.createElement('div');
+    mid.className = 'mid';
+    const t = document.createElement('div');
+    t.className = 't';
+    t.textContent = title;
+    mid.appendChild(t);
+    if (sub) { const h = document.createElement('div'); h.className = 'h'; h.textContent = sub; mid.appendChild(h); }
+    b.appendChild(mid);
+    b.onclick = fn;
+    return b;
+  }
+  function render(d) {
+    es = d.es !== false;
+    applyTheme(d.theme);
+    document.getElementById('h').textContent = T('Elige una pesta\u00f1a para a\u00f1adirla a la vista dividida', 'Choose a tab to add to the split view');
+    const x = document.getElementById('x');
+    x.innerHTML = P_CLOSE;
+    x.title = T('Cerrar', 'Close');
+    x.onclick = () => api.close();
+    const list = document.getElementById('list');
+    list.textContent = '';
+    list.appendChild(card(iconFor(null), T('Nueva pesta\u00f1a', 'New tab'), '', () => api.choose('new')));
+    if (d.items.length) { const s = document.createElement('div'); s.className = 'sep'; list.appendChild(s); }
+    d.items.forEach((it) => list.appendChild(card(iconFor(it), it.title, it.host, () => api.choose(it.id))));
+  }
+  api.onData(render);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') api.close(); });
+</script>
+</body>
+</html>

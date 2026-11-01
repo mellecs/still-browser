@@ -58,6 +58,23 @@
   .check.on .box { background: var(--accent); border-color: var(--accent); }
   .check.on .box svg { display: block; }
   .check .lbl { flex: 1; min-width: 0; font-weight: 600; }
+  /* EXT_V2 */
+  .xe-head { display: flex; align-items: center; justify-content: space-between; padding: 2px 4px 10px 8px; }
+  .xe-title { font-size: 16px; font-weight: 600; }
+  .xe-btn { width: 28px; height: 28px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; flex: none; }
+  .xe-btn:hover { background: color-mix(in srgb, var(--text) 14%, var(--bg)); }
+  .xe-btn.on { color: var(--accent); }
+  .xe-btn svg.ico, .xe-ico svg.ico { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .xe-btn svg.ico { width: 16px; height: 16px; }
+  .xe-row { display: flex; align-items: center; gap: 10px; min-height: 38px; padding: 0 4px 0 8px; border-radius: 8px; box-sizing: border-box; }
+  .xe-row:hover, .xe-row.open { background: var(--hover); }
+  .xe-ico { width: 24px; height: 24px; flex: none; display: flex; align-items: center; justify-content: center; color: var(--muted); }
+  .xe-pin { color: color-mix(in srgb, var(--text) 78%, var(--bg)); }
+  .xe-pin svg.ico { width: 18px; height: 18px; stroke-width: 2; }
+  .xe-pin.on { color: var(--accent); }
+  .xe-ico img { width: 20px; height: 20px; border-radius: 4px; display: block; }
+  .xe-ico svg.ico { width: 18px; height: 18px; }
+  .xe-name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 </style>
 <link rel="stylesheet" href="fonts.css">
 </head>
@@ -68,20 +85,23 @@
   const ICONS = {
     settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
     history: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
-  extPuzzle: '<path d="M10 4a2 2 0 1 1 4 0v1h3a1 1 0 0 1 1 1v3h-1a2 2 0 1 0 0 4h1v3a1 1 0 0 1-1 1h-3v-1a2 2 0 1 0-4 0v1H7a1 1 0 0 1-1-1v-3h1a2 2 0 1 0 0-4H6V6a1 1 0 0 1 1-1h3z"/>',
+  extPuzzle: '<path d="M20.5 11H19V7c0-1.1-.9-2-2-2h-4V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4c-1.1 0-1.99.9-1.99 2v3.8H3.5c1.49 0 2.7 1.21 2.7 2.7s-1.21 2.7-2.7 2.7H2V20c0 1.1.9 2 2 2h3.8v-1.5c0-1.49 1.21-2.7 2.7-2.7 1.49 0 2.7 1.21 2.7 2.7V22H17c1.1 0 2-.9 2-2v-4h1.5c1.38 0 2.5-1.12 2.5-2.5S21.88 11 20.5 11z"/>',
   extBack: '<path d="M19 12H5"/><path d="M12 5l-7 7 7 7"/>',
   extStore: '<path d="M4 9l1-5h14l1 5"/><path d="M5 9v10h14V9"/><path d="M9 19v-5h6v5"/>',
-    downloads: '<path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/>',
-    print: '<path d="M7 9V4h10v5"/><rect x="5" y="9" width="14" height="8" rx="2"/><path d="M8 14h8v6H8z"/>',
+    downloads: '<path d="M12 4v10.5"/><path d="M7.5 10.5l4.5 4.5 4.5-4.5"/><path d="M5 15.5v1.5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1.5"/>',
+    print: '<path d="M7 9V4h10v5"/><rect x="4" y="9" width="16" height="8" rx="2"/><path d="M7 14h10v6H7z"/>',
     reset: '<path d="M20 12a8 8 0 1 1-2.5-5.8"/><path d="M20 4v5h-5"/>',
     duplicate: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/>',
     pin: '<path d="M12 17v5"/><path d="M9 4h6"/><path d="M10 4l-.5 6L7 13h10l-2.5-3L14 4"/>',
     mute: '<path d="M11 5L6 9H3v6h3l5 4z"/><path d="M16 9l5 6"/><path d="M21 9l-5 6"/>',
     unmute: '<path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/>',
     closeOthers: '<path d="M5 4l6 6"/><path d="M11 4l-6 6"/><path d="M13 14l6 6"/><path d="M19 14l-6 6"/>',
-    close: '<path d="M6 6l12 12"/><path d="M18 6L6 18"/>'
+    close: '<path d="M6 6l12 12"/><path d="M18 6L6 18"/>',
+  trash: '<path d="M4 7h16"/><path d="M9 7V4.5h6V7"/><path d="M6.5 7l.8 12a1 1 0 0 0 1 .9h7.4a1 1 0 0 0 1-.9l.8-12"/><path d="M10 11v5"/><path d="M14 11v5"/>'
   };
   const panel = document.getElementById('panel');
+  ICONS.trash = ICONS.trash || '<path d="M4 7h16"/><path d="M9 7V4.5h6V7"/><path d="M6.5 7l.8 12a1 1 0 0 0 1 .9h7.4a1 1 0 0 0 1-.9l.8-12"/><path d="M10 11v5"/><path d="M14 11v5"/>';
+  ICONS.pinx = '<path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/>'; ICONS.dots = '<circle cx="12" cy="5" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="12" cy="19" r="1.3"/>'; /* EXT_V2 */
   const NS = 'http://www.w3.org/2000/svg';
   const svgIcon = (name) => {
     const s = document.createElementNS(NS, 'svg');
@@ -124,6 +144,29 @@
           g.appendChild(c);
         });
         panel.appendChild(g);
+      } else if (it.type === 'exthead') {
+        const hd = document.createElement('div'); hd.className = 'xe-head';
+        const tt = document.createElement('span'); tt.className = 'xe-title'; tt.textContent = it.title; hd.appendChild(tt);
+        const x = document.createElement('button'); x.className = 'xe-btn'; x.title = it.close; x.appendChild(svgIcon('close'));
+        x.onclick = () => window.menuApi.click('extClose');
+        hd.appendChild(x); panel.appendChild(hd);
+      } else if (it.type === 'ext2') {
+        const row = document.createElement('div'); row.className = 'xe-row' + (it.open ? ' open' : '');
+        const ib = document.createElement('span'); ib.className = 'xe-ico';
+        if (it.icon) { const im = document.createElement('img'); im.onerror = () => { ib.textContent = ''; ib.appendChild(svgIcon('extPuzzle')); }; im.src = it.icon; ib.appendChild(im); }
+        else ib.appendChild(svgIcon('extPuzzle'));
+        row.appendChild(ib);
+        const nm = document.createElement('span'); nm.className = 'xe-name'; nm.textContent = it.name; nm.title = it.name; row.appendChild(nm);
+        const pin = document.createElement('button'); pin.className = 'xe-btn xe-pin' + (it.pinned ? ' on' : ''); pin.title = it.pinned ? it.tUnpin : it.tPin;
+        const ps = svgIcon('pinx');
+        if (!it.pinned) { const sl = document.createElementNS(NS, 'path'); sl.setAttribute('d', 'M4 4l16 16'); ps.appendChild(sl); }
+        pin.appendChild(ps);
+        pin.onclick = (ev) => { ev.stopPropagation(); window.menuApi.click('extTogglePin', it.id); };
+        row.appendChild(pin);
+        const dt = document.createElement('button'); dt.className = 'xe-btn'; dt.title = it.tMore; dt.appendChild(svgIcon('dots'));
+        dt.onclick = (ev) => { ev.stopPropagation(); window.menuApi.click('extDots', it.id); };
+        row.appendChild(dt);
+        panel.appendChild(row);
       } else if (it.type === 'checkbox') {
         const c = document.createElement('div');
         c.className = 'check' + (it.checked ? ' on' : '') + (it.indent ? ' indent' : '');
@@ -150,7 +193,8 @@
       panel.style.left = Math.max(8, Math.min(data.pos.x, window.innerWidth - w - 8)) + 'px';
       panel.style.top = Math.max(8, Math.min(data.pos.y, window.innerHeight - h - 8)) + 'px';
     } else {
-      ['left', 'top', 'right', 'width', 'transformOrigin'].forEach((p) => { panel.style[p] = ''; });
+      ['left', 'top', 'right', 'width', 'transformOrigin', 'maxHeight'].forEach((p) => { panel.style[p] = ''; });
+      if (data.vertical) { const tp = data.compact ? 38 : 44; panel.style.top = tp + 'px'; panel.style.maxHeight = 'calc(100vh - ' + (tp + 16) + 'px)'; } /* MENU_VERTICAL */
     }
   }
   window.menuApi.onData(render);

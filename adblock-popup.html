@@ -1,0 +1,114 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: 'Inter'; font-style: normal; font-weight: 100 900; src: url('fonts/inter-latin-wght-normal.woff2') format('woff2'); }
+  :root { --bg: #292a2d; --hover: #3a3b3f; --border: #3c3d40; --text: #ffffff; --muted: #c4c7c5; --accent: #5b9bff; }
+  html, body { margin: 0; background: transparent; overflow: hidden; font: 13px 'Inter', 'Segoe UI', system-ui, sans-serif; color: var(--text); user-select: none; }
+  body { padding: 8px; }
+  svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  #panel { box-sizing: border-box; padding: 10px; border-radius: 16px; background: var(--bg); border: 1px solid var(--border); box-shadow: 0 2px 6px rgba(0,0,0,0.4) /* SOMBRA_AJUSTADA */; }
+  .top { display: flex; align-items: center; gap: 12px; padding: 4px 4px 12px; }
+  .fav { width: 34px; height: 34px; border-radius: 9px; background: var(--hover); display: flex; align-items: center; justify-content: center; flex: none; overflow: hidden; }
+  .fav svg { width: 20px; height: 20px; color: var(--muted); }
+  .fav img { width: 22px; height: 22px; border-radius: 4px; display: block; }
+  .nm { min-width: 0; flex: 1; }
+  .host { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sub { color: var(--muted); margin-top: 3px; }
+  .cnt { display: flex; align-items: baseline; gap: 8px; padding: 12px; border-radius: 12px; background: var(--hover); margin-bottom: 8px; line-height: 1.4; }
+  .cnt b { font-size: 20px; font-weight: 700; }
+  .cnt span { color: var(--muted); }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 6px; }
+  .sep { height: 1px; background: var(--border); margin: 6px 4px; }
+  .sw { width: 42px; height: 24px; border-radius: 12px; border: 0; padding: 0; background: #55575c; position: relative; cursor: pointer; flex: none; }
+  .sw.on { background: var(--accent); }
+  .knob { display: block; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: left 0.12s; }
+  .sw.on .knob { left: 21px; }
+  .opt { display: block; width: 100%; text-align: left; height: 36px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent; color: var(--text); font: inherit; cursor: pointer; margin-top: 4px; }
+  .opt:hover { background: var(--hover); }
+</style>
+</head>
+<body>
+<div id="panel"></div>
+<script>
+  const api = window.abApi;
+  const panel = document.getElementById('panel');
+  let es = true, lastH = 0;
+  const T = (a, b) => (es ? a : b);
+  const GLOBO = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18"/><path d="M12 3a14 14 0 0 0 0 18"/></svg>';
+  const applyTheme = (th) => { try { const r = document.documentElement.style; Object.keys(th || {}).forEach((k) => r.setProperty('--' + k, th[k])); } catch (e) {} };
+  function el(tag, cls, text) {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function sw(on, fn) {
+    const b = el('button', 'sw' + (on ? ' on' : ''));
+    b.appendChild(el('span', 'knob'));
+    b.onclick = fn;
+    return b;
+  }
+  function fila(texto, on, fn) {
+    const r = el('div', 'row');
+    r.appendChild(el('span', '', texto));
+    r.appendChild(sw(on, fn));
+    return r;
+  }
+  function favicon(d, internal) {
+    const f = el('div', 'fav');
+    let src = d.icon || '';
+    if (!src && !internal && d.host) src = (d.kind === 'secure' ? 'https://' : 'http://') + d.host + '/favicon.ico';
+    if (!/^(https?:|data:image\/)/i.test(src)) src = '';
+    if (!src) { f.innerHTML = GLOBO; return f; }
+    const im = document.createElement('img');
+    im.onerror = () => { f.textContent = ''; f.innerHTML = GLOBO; };
+    im.src = src;
+    f.appendChild(im);
+    return f;
+  }
+  function build(d) {
+    es = d.es !== false;
+    applyTheme(d.theme);
+    panel.textContent = '';
+    const internal = d.kind === 'internal';
+    const active = d.global && !d.allowed;
+    const top = el('div', 'top');
+    top.appendChild(favicon(d, internal));
+    const nm = el('div', 'nm');
+    nm.appendChild(el('div', 'host', internal ? 'Still' : d.host));
+    let sub;
+    if (internal) sub = T('P\u00e1gina interna', 'Internal page');
+    else if (active) sub = T('Bloqueador activado en este sitio', 'Blocker on for this site');
+    else if (d.global) sub = T('Bloqueador desactivado en este sitio', 'Blocker off for this site');
+    else sub = T('Bloqueador desactivado', 'Blocker off');
+    nm.appendChild(el('div', 'sub', sub));
+    top.appendChild(nm);
+    if (!internal) top.appendChild(sw(active, () => api.toggleSite()));
+    panel.appendChild(top);
+    if (!internal) {
+      const c = el('div', 'cnt');
+      c.appendChild(el('b', '', String(d.blocked || 0)));
+      c.appendChild(el('span', '', T('elementos bloqueados en esta p\u00e1gina', 'items blocked on this page')));
+      panel.appendChild(c);
+      panel.appendChild(fila(T('Bloquear huellas digitales', 'Block fingerprinting'), d.fp, () => api.pref('fp')));
+      if (d.cookieAll) panel.appendChild(fila(T('Cookies: todas bloqueadas (en Ajustes)', 'Cookies: all blocked (in Settings)'), true, () => {}));
+      else panel.appendChild(fila(T('Bloquear cookies de terceros', 'Block third-party cookies'), d.ck, () => api.pref('ck')));
+      panel.appendChild(fila(T('Bloquear scripts', 'Block scripts'), d.js, () => api.pref('js')));
+      panel.appendChild(fila(T('Olvidarme al cerrar este sitio', 'Forget me when I close this site'), d.fm, () => api.forget()));
+      if (d.yt) panel.appendChild(fila(T('Saltar anuncios de YouTube', 'Skip YouTube ads'), d.ytOn, () => api.ytskip()));
+      panel.appendChild(el('div', 'sep'));
+    }
+    panel.appendChild(fila(T('Bloqueador de anuncios (global)', 'Ad blocker (global)'), d.global, () => api.toggleGlobal()));
+    const b = el('button', 'opt', T('Configuraci\u00f3n global', 'Global settings'));
+    b.onclick = () => api.settings();
+    panel.appendChild(b);
+    const h = Math.ceil(panel.getBoundingClientRect().height) + 16;
+    if (h !== lastH) { lastH = h; api.size(h); }
+  }
+  api.onData(build);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') api.close(); });
+</script>
+</body>
+</html>

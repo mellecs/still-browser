@@ -122,7 +122,7 @@
     #newtab:hover { background: #3a3a3a; color: #ffffff; }
     #toolbar {
       display: grid;
-      grid-template-columns: 1fr minmax(0, 480px) 1fr;
+      grid-template-columns: 1fr minmax(0, 600px) 1fr; /* BARRA_ANCHA */
       align-items: center;
       column-gap: 12px;
       height: 44px;
@@ -302,31 +302,19 @@
   </style>
 <script src="i18n.js"></script>
 <style>
-    /* animacion del icono de descargas */
-    #downloads { position: relative; overflow: hidden; }
-    #downloads::after {
-      content: '';
-      position: absolute;
-      left: 6px;
-      right: 6px;
-      bottom: 2px;
-      height: 2px;
-      border-radius: 1px;
-      background: var(--ring);
-      transform-origin: left;
-      transform: scaleX(var(--p, 0));
-      opacity: 0;
-      transition: transform 0.3s ease, opacity 0.2s ease;
-    }
-    #downloads.active { color: var(--ring); }
-    #downloads.active::after { opacity: 1; }
-    #downloads.indet::after { transform: none; animation: dl-indet 1.2s linear infinite; }
-    #downloads.active svg path:nth-child(-n+2) { animation: dl-bob 0.9s ease-in-out infinite; }
+    /* DESCARGA_ZEN: la flecha se llena de color segun el progreso */
+    #downloads { position: relative; overflow: visible; }
+    #downloads.active svg path { stroke: url(#dlGrad); }
+    #downloads.indet svg path { stroke: var(--ring); }
+    #downloads.indet svg path:nth-child(-n+2) { animation: dl-bob 0.9s ease-in-out infinite; }
+    #downloads.dl-start svg { animation: dl-pop 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.4); }
+    #downloads.dl-start svg path:nth-child(-n+2) { animation: dl-drop 0.5s cubic-bezier(0.3, 1.3, 0.5, 1); }
     #downloads.done { color: var(--ring); }
-    #downloads.done svg { animation: dl-done 0.6s ease 3; }
+    #downloads.done svg { animation: dl-done 0.5s ease 1; }
+    @keyframes dl-pop { from { transform: scale(0.7); } to { transform: scale(1); } }
+    @keyframes dl-drop { from { transform: translateY(-7px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     @keyframes dl-bob { 0%, 100% { transform: translateY(-1.5px); } 50% { transform: translateY(2px); } }
-    @keyframes dl-done { 0% { transform: scale(1); } 40% { transform: scale(1.35); } 100% { transform: scale(1); } }
-    @keyframes dl-indet { 0% { transform: translateX(-100%) scaleX(0.4); } 100% { transform: translateX(200%) scaleX(0.4); } }
+    @keyframes dl-done { 0% { transform: scale(1); } 40% { transform: scale(1.25); } 100% { transform: scale(1); } }
   </style>
 <style>
     /* candado de la barra de direcciones */
@@ -343,7 +331,15 @@
     #addrwrap.has-lock #address { padding-left: 32px; }
     #lock svg, body.compact #lock svg { width: 14px; height: 14px; }
     #lock.secure { color: var(--muted); }
+    #lock { isolation: isolate; -webkit-app-region: no-drag; }
+    #lock::before { content: ''; position: absolute; inset: -5px; border-radius: 7px; background: transparent; transition: background 0.12s; z-index: -1; }
+    #lock:hover::before { background: var(--btn-hover, #3a3b3f); }
     #lock.insecure { color: #ff8a65; }
+    /* CANDADO_IZQUIERDA: el candado es el boton, pegado a la izquierda de la barra */
+    #lock { left: 3px; width: 22px; height: 22px; align-items: center; justify-content: center; border-radius: 7px; cursor: pointer; transition: background 0.12s; }
+    #lock::before { display: none; }
+    #lock:hover { background: rgba(255, 255, 255, 0.14); }
+    body.compact #lock { width: 20px; height: 20px; }
   </style>
 <style>
     /* indicador de carga en la pestaña */
@@ -417,13 +413,53 @@ browser-action-list::part(action):hover { background-color: var(--btn-hover, #3a
 body.no-extbar browser-action-list { display: none !important; } /* EXTENSIONES_APARIENCIA */
 body.no-extbtn #extmenu { display: none !important; } /* EXT_PIN */
 /* ICONOS_NAV_GRANDES: tamano de los iconos de la barra de navegacion (modo normal). Cambia estos dos numeros para ajustarlo. */
-  :root { --nav-btn: 29px; --nav-icon: 17px; }
+  :root { --nav-btn: 31px; --nav-icon: 19px; }
   body:not(.compact) #toolbar button { width: var(--nav-btn) !important; height: var(--nav-btn) !important; }
   body:not(.compact) #toolbar button svg { width: var(--nav-icon) !important; height: var(--nav-icon) !important; }
-  body:not(.compact) #toolbar #adblock svg, body:not(.compact) #toolbar #extmenu svg { width: calc(var(--nav-icon) + 2px) !important; height: calc(var(--nav-icon) + 2px) !important; }
+  body:not(.compact) #toolbar #adblock svg, body:not(.compact) #toolbar #extmenu svg { width: var(--nav-icon) !important; height: var(--nav-icon) !important; }
   /* MARCO_FONDO: el margen del marco enseña el fondo de esta pagina; se pinta como la barra (sigue el tema) */
   html { background: none !important; } body { background: var(--toolbar, #292a2d) !important; } /* MARCO_FONDO2 */
   </style>
+<style>/* BARRA_DIRECCIONES */
+body #address { height: 28px !important; border-radius: 8px !important; font-size: 13px !important; }
+body.compact #address { height: 25px !important; border-radius: 7px !important; font-size: 12px !important; }
+body #addrwrap { border-radius: 8px !important; }
+</style>
+<style>/* CANDADO_GRANDE */
+body #lock svg { width: 17px !important; height: 17px !important; }
+body.compact #lock svg { width: 16px !important; height: 16px !important; }
+  /* ADBLOCK_ICONO: icono del bloqueador como el fantasma de Ghostery en monocromo; se desactiva con la clase adblock-default (Ajustes > Apariencia). */
+  body:not(.adblock-default) #toolbar #adblock { font-size: 0 !important; background-image: none !important; display: flex !important; align-items: center; justify-content: center; padding: 0 !important; }
+  body:not(.adblock-default) #toolbar #adblock > * { display: none !important; }
+  body:not(.adblock-default) #toolbar #adblock::before { content: ""; display: block; width: 18px; height: 18px; background-color: currentColor; -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill-rule='evenodd' d='M12 2C7.6 2 4 5.5 4 9.9V19.5C4 20.6 5.2 21.1 6 20.4L7.4 19.2C8 18.7 8.8 18.7 9.4 19.2L10.6 20.3C11.4 21 12.6 21 13.4 20.3L14.6 19.2C15.2 18.7 16 18.7 16.6 19.2L18 20.4C18.8 21.1 20 20.6 20 19.5V9.9C20 5.5 16.4 2 12 2Z M8 9.8a1.3 1.8 0 1 0 2.6 0a1.3 1.8 0 1 0-2.6 0Z M13.4 9.8a1.3 1.8 0 1 0 2.6 0a1.3 1.8 0 1 0-2.6 0Z M8.9 13.4Q12 16.8 15.1 13.4Q12 15.3 8.9 13.4Z'/></svg>") center / contain no-repeat; mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill-rule='evenodd' d='M12 2C7.6 2 4 5.5 4 9.9V19.5C4 20.6 5.2 21.1 6 20.4L7.4 19.2C8 18.7 8.8 18.7 9.4 19.2L10.6 20.3C11.4 21 12.6 21 13.4 20.3L14.6 19.2C15.2 18.7 16 18.7 16.6 19.2L18 20.4C18.8 21.1 20 20.6 20 19.5V9.9C20 5.5 16.4 2 12 2Z M8 9.8a1.3 1.8 0 1 0 2.6 0a1.3 1.8 0 1 0-2.6 0Z M13.4 9.8a1.3 1.8 0 1 0 2.6 0a1.3 1.8 0 1 0-2.6 0Z M8.9 13.4Q12 16.8 15.1 13.4Q12 15.3 8.9 13.4Z'/></svg>") center / contain no-repeat; }
+  body.compact:not(.adblock-default) #toolbar #adblock::before { width: 20px; height: 20px; }
+  /* ICONOS_IGUALES: todos los iconos de la barra miden lo mismo (--icono). Para cambiar el tamano: --nav-icon en modo normal, 18px en compacto. */
+  body { --icono: var(--nav-icon, 17px); }
+  body.compact { --icono: 19px; }
+  #toolbar button svg, #toolbar #adblock svg, #toolbar #extmenu svg, #toolbar #adblock::before { width: var(--icono) !important; height: var(--icono) !important; }
+  </style>
+<style>/* FUENTE_INTER_UI */
+@font-face { font-family: 'Inter UI'; font-style: normal; font-weight: 100 900; font-display: swap; src: url('node_modules/@fontsource-variable/inter/files/inter-latin-ext-wght-normal.woff2') format('woff2'); unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family: 'Inter UI'; font-style: normal; font-weight: 100 900; font-display: swap; src: url('node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2') format('woff2'); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+body.fuente-propia, body.fuente-propia *:not(svg):not(svg *) { font-family: var(--fuente-ui) !important; } /* FUENTE_ELEGIDA_UI */
+</style>
+<style>/* LOCK_ANCHO */
+body #lock { position: absolute !important; top: 2px !important; bottom: 2px !important; left: 2px !important; width: 26px !important; height: auto !important; margin: 0 !important; transform: none !important; border-radius: 6px !important; }
+body.compact #lock { width: 23px !important; }
+body #lock svg, body.compact #lock svg { width: 18px !important; height: 18px !important; }
+body #address { display: block !important; box-sizing: border-box !important; padding-top: 0 !important; padding-bottom: 0 !important; line-height: normal !important; text-align: center !important; }
+body #address:focus { text-align: center !important; }
+body #addrwrap.has-lock #address { padding-left: 36px !important; padding-right: 36px !important; }
+body.compact #addrwrap.has-lock #address { padding-left: 32px !important; padding-right: 32px !important; }
+</style>
+<style>/* SEPARAR_TABBAR */
+#tabbar { background: var(--tabbar, var(--toolbar)) !important; }
+</style>
+<style>/* ICONO_IZQUIERDA: el candado de la barra de direcciones usa el icono de flechas (el color y el clic siguen igual) */
+body #lock svg { display: none !important; }
+body #lock::after { content: ""; display: block; width: 17px; height: 17px; background-color: currentColor; -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='3' width='18' height='18' rx='4.5'/><path d='M16 9H8'/><path d='M9.6 7.6L8 9l1.6 1.4'/><path d='M8 15h8'/><path d='M14.4 13.6L16 15l-1.6 1.4'/></svg>") center / contain no-repeat; }
+body.compact #lock::after { width: 16px; height: 16px; }
+</style>
 </head>
 <body>
   <div id="tabbar">
@@ -432,22 +468,24 @@ body.no-extbtn #extmenu { display: none !important; } /* EXT_PIN */
   </div>
   <div id="toolbar">
     <div id="nav">
+      <button id="sidebtn" title="Tabs sidebar"><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="3"/><path d="M9.5 4.5v15"/></svg></button>
       <button id="back" title="Atrás">
-        <svg viewBox="0 0 24 24"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M21 12H3"/><path d="M10 19l-7-7 7-7"/></svg>
       </button>
       <button id="forward" title="Adelante">
-        <svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M3 12h18"/><path d="M14 5l7 7-7 7"/></svg>
       </button>
       <button id="reload" title="Recargar">
-        <svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.5-5.8"/><path d="M20 4v5h-5"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M20.2 12a8.2 8.2 0 1 1-2.4-5.8"/><path d="M19.07 3.79L19.5 7.9L15.39 7.47Z"/></svg>
       </button>
     </div>
     <div id="addrwrap"><span id="lock"></span><input id="address" type="text" placeholder="Busca o escribe una dirección"></div>
     <div id="right">
-      <browser-action-list id="extbar" alignment="bottom right"></browser-action-list>
+      <browser-action-list id="extbar" alignment="bottom left"></browser-action-list>
       <button id="extmenu" title="Extensiones"><svg viewBox="0 -2 24 24"><path d="M10 4a2 2 0 1 1 4 0v1h3a1 1 0 0 1 1 1v3h-1a2 2 0 1 0 0 4h1v3a1 1 0 0 1-1 1h-3v-1a2 2 0 1 0-4 0v1H7a1 1 0 0 1-1-1v-3h1a2 2 0 1 0 0-4H6V6a1 1 0 0 1 1-1h3z"/></svg></button>
+      
       <button id="adblock" title="Bloqueador de anuncios"></button>
-      <button id="downloads" title="Descargas"><svg viewBox="0 0 24 24"><path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg></button>
+      <button id="downloads" title="Descargas"><svg viewBox="0 0 24 24"><path d="M12 4v10.5"/><path d="M7.5 10.5l4.5 4.5 4.5-4.5"/><path d="M5 15.5v1.5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1.5"/><defs><linearGradient id="dlGrad" gradientUnits="userSpaceOnUse" x1="0" y1="20" x2="0" y2="3"><stop offset="0" style="stop-color:var(--ring)"/><stop id="dlA" offset="0" style="stop-color:var(--ring)"/><stop id="dlB" offset="0" style="stop-color:currentColor"/><stop offset="1" style="stop-color:currentColor"/></linearGradient></defs></svg></button>
       <button id="settings" title="Configuración"><svg viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></svg></button>
     </div>
   </div>
@@ -462,7 +500,7 @@ body.no-extbtn #extmenu { display: none !important; } /* EXT_PIN */
 
     document.getElementById('back').onclick = () => window.chorus.back();
     document.getElementById('forward').onclick = () => window.chorus.forward();
-    document.getElementById('reload').onclick = () => window.chorus.reload();
+    document.getElementById('reload').onclick = () => { if (document.body.classList.contains('cargando')) window.chorus.stop(); else window.chorus.reload(); }; /* PARAR_CARGA */
     document.getElementById('newtab').onclick = () => window.chorus.newTab();
     document.getElementById('settings').onclick = () => window.chorus.openMenu();
     document.getElementById('downloads').onclick = () => window.chorus.openDownloads();
@@ -473,7 +511,7 @@ const aplicarDescargas = (s) => {
   const b = document.getElementById('downloads');
   const a = __dlAjustes;
   const oculto = !!(a && a.showDownloads === false);
-  const auto = !!(a && a.downloadsAuto === true);
+  const auto = !!(a && a.downloadsAuto === true) && !(a && a.verticalTabs === true); /* DL_VERTICAL_OCULTO */
   if (!auto) __dlPend = false;
   const activo = b.classList.contains('active') || b.classList.contains('done') || __dlPend;
   b.classList.toggle('dl-pending', auto && __dlPend);
@@ -498,7 +536,7 @@ try { const st = document.createElement('style'); st.textContent = '#downloads.d
       b.title = en ? (on ? 'Ad blocker: on. Click to turn off' : 'Ad blocker: off. Click to turn on')
                    : (on ? 'Bloqueador de anuncios: activado. Clic para desactivar' : 'Bloqueador de anuncios: desactivado. Clic para activar');
     };
-    document.getElementById('adblock').onclick = () => window.chorus.toggleAdblock();
+    document.getElementById('adblock').onclick = () => { try { const r = document.getElementById('adblock').getBoundingClientRect(); window.chorus.openAdblockPanel(r.right, r.bottom); } catch (e) {} }; /* ADBLOCK_PANEL */
     window.chorus.getSettings().then(aplicarAdblock);
     window.chorus.onSettings(aplicarAdblock);
     address.addEventListener('keydown', (e) => {
@@ -573,7 +611,7 @@ try { const st = document.createElement('style'); st.textContent = '#downloads.d
 
     window.chorus.onTabsChange((tabs) => {
       if (draggingTab) return;
-      tabsEl.innerHTML = '';
+      tabsEl.innerHTML = ''; let pairWrap = null; /* SPLIT_TABS */
       tabs.forEach((tab) => {
         const el = document.createElement('div');
         el.className = 'tab' + (tab.active ? ' active' : '') + (tab.suspended ? ' suspended' : '');
@@ -582,7 +620,7 @@ try { const st = document.createElement('style'); st.textContent = '#downloads.d
         el.draggable = false;
         el.dataset.id = tab.id;
 
-        const icon = makeIcon(tab.favicon); if (tab.isStart) icon.innerHTML = START_ICON; if (tab.loading) icon.innerHTML = '<span class=spinner></span>';
+        const icon = makeIcon(tab.favicon); if (tab.isStart) /* LOGO_PEQUENO */ icon.innerHTML = '<svg viewBox="200 192 624 624" style="width:13px;height:13px;fill:none;stroke:#E6E6E6;stroke-width:48;stroke-linejoin:round;stroke-linecap:round;filter:none"><path d="M512 230L740 779L512 660L284 779Z"/></svg>'; /* ICONO_BORDE */ if (tab.isStart && tab.pagina === 'settings') icon.innerHTML = '<svg viewBox="0 0 24 24" style="fill:none;stroke:#E6E6E6;stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round;filter:none"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>'; else if (tab.isStart && tab.pagina === 'downloads') icon.innerHTML = '<svg viewBox="0 0 24 24" style="fill:none;stroke:#E6E6E6;stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round;filter:none"><path d="M12 4v10.5"/><path d="M7.5 10.5l4.5 4.5 4.5-4.5"/><path d="M5 15.5v1.5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1.5"/></svg>'; else if (tab.isStart && tab.pagina === 'extensions') icon.innerHTML = '<svg viewBox="0 -2 24 24" style="fill:none;stroke:#E6E6E6;stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round;filter:none"><path d="M10 4a2 2 0 1 1 4 0v1h3a1 1 0 0 1 1 1v3h-1a2 2 0 1 0 0 4h1v3a1 1 0 0 1-1 1h-3v-1a2 2 0 1 0-4 0v1H7a1 1 0 0 1-1-1v-3h1a2 2 0 1 0 0-4H6V6a1 1 0 0 1 1-1h3z"/></svg>'; else if (tab.isStart && tab.pagina === 'history') icon.innerHTML = '<svg viewBox="0 0 24 24" style="fill:none;stroke:#E6E6E6;stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round;filter:none"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>'; /* ICONO_HISTORIAL */ /* ICONO_PAGINAS */ if (tab.loading) icon.innerHTML = '<span class=spinner></span>';
 
         const title = document.createElement('span');
         title.className = 'tab-title';
@@ -611,13 +649,55 @@ try { const st = document.createElement('style'); st.textContent = '#downloads.d
         if (tab.pinned) { el.classList.add('pinned'); el.title = tab.title; }
         el.appendChild(close);
 
-        tabsEl.appendChild(el);
+        if (tab.split) { if (!pairWrap) { pairWrap = document.createElement('div'); pairWrap.className = 'splitpair'; tabsEl.appendChild(pairWrap); } el.style.order = tab.split === 'b' ? '1' : '0'; pairWrap.appendChild(el); } else tabsEl.appendChild(el); /* SPLIT_TABS */
       });
       updateNarrow();
     });
 
         // Arrastrar pestañas: la pestaña se pone encima de las demás y, al soltarla, se ordena
     let draggingTab = null;
+    // TOOLTIP_CONSUMO: al dejar el raton sobre una pestana sale su consumo
+    const ttStyle = document.createElement('style');
+    ttStyle.textContent = '#tab-usage{position:fixed;z-index:99999;display:none;align-items:center;gap:8px;max-width:420px;height:28px;padding:0 12px;box-sizing:border-box;border-radius:10px;background:#1a1a1c;color:#eeeeee;border:1px solid rgba(255,255,255,0.14);box-shadow:0 6px 18px rgba(0,0,0,0.4);font:12px Inter,"Segoe UI",system-ui,sans-serif;pointer-events:none;white-space:nowrap}#tab-usage.show{display:flex}#tab-usage .tu-t{overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto}#tab-usage .tu-d{color:#9aa0a6;flex:none}#tab-usage .tu-v{flex:none}';
+    document.head.appendChild(ttStyle);
+    const tt = document.createElement('div');
+    tt.id = 'tab-usage';
+    document.body.appendChild(tt);
+    let ttTimer = null, ttId = null;
+    const ttHide = () => { clearTimeout(ttTimer); ttTimer = null; ttId = null; tt.classList.remove('show'); };
+    const ttMem = (kb) => (kb >= 1048576 ? (kb / 1048576).toFixed(1) + ' GB' : Math.round(kb / 1024) + ' MB');
+    const ttFind = (id) => tabsEl.querySelector('.tab[data-tab-id="' + id + '"]');
+    tabsEl.addEventListener('mouseover', (e) => {
+      const el = e.target.closest && e.target.closest('.tab');
+      if (!el || !el.dataset.tabId) return;
+      if (el.title) { el.dataset.tt = el.title; el.removeAttribute('title'); }
+      if (draggingTab || el.dataset.tabId === ttId) return;
+      ttHide();
+      ttId = el.dataset.tabId;
+      ttTimer = setTimeout(async () => {
+        const id = ttId;
+        if (!id) return;
+        let info = null;
+        try { info = await window.chorus.tabUsage(Number(id)); } catch (err) {}
+        const cur = ttFind(id);
+        if (ttId !== id || !cur) return;
+        tt.innerHTML = '';
+        const a = document.createElement('span'); a.className = 'tu-t'; a.textContent = cur.dataset.tt || ''; tt.appendChild(a);
+        if (info) {
+          const s = document.createElement('span'); s.className = 'tu-d'; s.textContent = '\u00b7'; tt.appendChild(s);
+          const v = document.createElement('span'); v.className = 'tu-v';
+          v.textContent = info.suspended ? 'Suspendida' : (ttMem(info.memKB) + ' \u00b7 ' + info.cpu.toFixed(1) + ' % CPU');
+          tt.appendChild(v);
+        }
+        tt.classList.add('show');
+        const r = cur.getBoundingClientRect();
+        const w = tt.offsetWidth;
+        tt.style.left = Math.max(4, Math.min(r.left, window.innerWidth - w - 4)) + 'px';
+        tt.style.top = (r.bottom + 6) + 'px';
+      }, 500);
+    });
+    tabsEl.addEventListener('mouseleave', ttHide);
+    tabsEl.addEventListener('mousedown', ttHide);
     // PESTANAS_MENU_DERECHO
     tabsEl.addEventListener('contextmenu', (e) => {
       const el = e.target.closest && e.target.closest('.tab');
@@ -625,38 +705,47 @@ try { const st = document.createElement('style'); st.textContent = '#downloads.d
       e.preventDefault();
       window.chorus.tabMenu(Number(el.dataset.tabId));
     });
-    tabsEl.addEventListener('mousedown', (e) => {
+    tabsEl.addEventListener('mousedown', (e) => { /* SB_ORDEN_V */
       if (e.button !== 0 || draggingTab) return;
       const tab = e.target.closest && e.target.closest('.tab');
-      if (!tab || e.target.closest('.tab-close') || e.target.closest('.tab-audio')) return;
+      if (!tab || e.target.closest('.tab-close') || e.target.closest('.tab-audio') || tab.closest('.splitpair')) return; /* SPLIT_TABS */
+      const V = document.body.classList.contains('vertical');
       const list = [...tabsEl.querySelectorAll('.tab')];
       const i = list.indexOf(tab);
       const rects = list.map((t) => t.getBoundingClientRect());
       const barra = document.getElementById('tabbar');
       const startX = e.clientX;
-      const startY = e.clientY; // ARRASTRE_VERTICAL
-      const minDx = rects[0].left - rects[i].left;
-      const maxDx = rects[list.length - 1].right - rects[i].right;
-      let dx = 0;
+      const startY = e.clientY;
+      const ini = (r) => (V ? r.top : r.left);
+      const fin = (r) => (V ? r.bottom : r.right);
+      const tam = (r) => (V ? r.height : r.width);
+      const tr = (v) => (V ? 'translateY(' : 'translateX(') + v + 'px)';
+      const minD = ini(rects[0]) - ini(rects[i]);
+      const maxD = fin(rects[list.length - 1]) - fin(rects[i]);
+      let d = 0;
       let moving = false;
-      const gapTabs = list.length > 1 ? Math.max(0, rects[1].left - rects[0].right) : 0; // ANIMACION_ARRASTRE
-      const huecoTab = rects[i].width + gapTabs;
-      const animarOtras = (d) => {
-        let objetivo = i;
-        if (d > 0) {
-          const borde = rects[i].right + d;
-          list.forEach((t, j) => { if (j > i && rects[j].left + rects[j].width / 2 < borde) objetivo = j; });
-        } else if (d < 0) {
-          const borde = rects[i].left + d;
-          list.forEach((t, j) => { if (j < i && j < objetivo && rects[j].left + rects[j].width / 2 > borde) objetivo = j; });
+      const gapTabs = list.length > 1 ? Math.max(0, ini(rects[1]) - fin(rects[0])) : 0;
+      const hueco = tam(rects[i]) + gapTabs;
+      const destino = (dd) => {
+        let obj = i;
+        if (dd > 0) {
+          const borde = fin(rects[i]) + dd;
+          list.forEach((t, j) => { if (j > i && ini(rects[j]) + tam(rects[j]) / 2 < borde) obj = j; });
+        } else if (dd < 0) {
+          const borde = ini(rects[i]) + dd;
+          list.forEach((t, j) => { if (j < i && j < obj && ini(rects[j]) + tam(rects[j]) / 2 > borde) obj = j; });
         }
+        return obj;
+      };
+      const animarOtras = (dd) => {
+        const obj = destino(dd);
         list.forEach((t, j) => {
           if (j === i) return;
           let x = 0;
-          if (objetivo > i && j > i && j <= objetivo) x = -huecoTab;
-          else if (objetivo < i && j < i && j >= objetivo) x = huecoTab;
+          if (obj > i && j > i && j <= obj) x = -hueco;
+          else if (obj < i && j < i && j >= obj) x = hueco;
           t.style.transition = 'transform 0.15s ease';
-          t.style.transform = x ? 'translateX(' + x + 'px)' : '';
+          t.style.transform = x ? tr(x) : '';
         });
       };
       const soltarOtras = () => {
@@ -664,28 +753,47 @@ try { const st = document.createElement('style'); st.textContent = '#downloads.d
         if (list[0]) list[0].getBoundingClientRect();
         list.forEach((t, j) => { if (j !== i) t.style.transition = ''; });
       };
+      const fuera = (ev, extra) => {
+        const bar = barra.getBoundingClientRect();
+        if (V) return ev.clientX < -12 || ev.clientX > window.innerWidth + 12 || ev.clientY < -12 || ev.clientY > window.innerHeight + 12;
+        return ev.clientX < -12 || ev.clientX > window.innerWidth + 12 || ev.clientY < -12 || ev.clientY > bar.bottom + extra.h;
+      };
 
+      let sacada = false;
       const move = (ev) => {
-        dx = Math.max(minDx, Math.min(maxDx, ev.clientX - startX));
+        if (sacada) { if (ev.buttons === 0) { up(ev); return; } window.chorus.detachMove(ev.screenX, ev.screenY); return; }
+        d = Math.max(minD, Math.min(maxD, V ? ev.clientY - startY : ev.clientX - startX));
         if (!moving) {
-          if (Math.abs(dx) < 5 && Math.abs(ev.clientY - startY) < 8) return;
+          const cruz = V ? Math.abs(ev.clientX - startX) : Math.abs(ev.clientY - startY);
+          if (Math.abs(d) < 5 && cruz < 8) return;
           moving = true;
           draggingTab = tab;
           tab.classList.add('dragging');
           barra.style.webkitAppRegion = 'no-drag';
         }
-        tab.style.transform = 'translateX(' + dx + 'px)';
-        animarOtras(dx);
+        tab.style.transform = tr(d);
+        animarOtras(d); /* SPLIT_HINT */ { let lado = null; try { const bx = barra.getBoundingClientRect().right; if (V && ev.clientX > bx + 20 && ev.clientX <= window.innerWidth && ev.clientY >= 0 && ev.clientY <= window.innerHeight) lado = window.__ladoSplit(ev, bx); if (tab.__lado !== lado) { tab.__lado = lado; const ic = tab.querySelector('.tab-icon'); const tt = tab.querySelector('.tab-title'); window.chorus.splitHint(lado, Number(tab.dataset.id), tt ? tt.textContent : '', ic ? ic.innerHTML : ''); } } catch (er) {} }
+        if (fuera(ev, { v: 60, h: 30 })) {
+          sacada = true; draggingTab = null; tab.classList.remove('dragging'); tab.style.transform = ''; soltarOtras();
+          window.chorus.detachStart(Number(tab.dataset.id), ev.screenX, ev.screenY);
+        }
       };
 
       const up = (ev) => {
         document.removeEventListener('mousemove', move);
         document.removeEventListener('mouseup', up);
-        barra.style.webkitAppRegion = '';
+        barra.style.webkitAppRegion = ''; try { window.chorus.splitHint(null); } catch (er) {} tab.__lado = undefined;
+        if (sacada) { window.chorus.detachEnd(ev ? ev.screenX : NaN, ev ? ev.screenY : NaN); return; }
         if (!moving) return;
-      if (ev) { // PESTANA_VENTANA
-        const bar = barra.getBoundingClientRect();
-        if (ev.clientX < -12 || ev.clientX > window.innerWidth + 12 || ev.clientY < -12 || ev.clientY > bar.bottom + 90) {
+        if (ev && V && ev.clientX > barra.getBoundingClientRect().right + 20 && !fuera(ev, { v: 120, h: 90 })) { /* SPLIT_ARRASTRAR */
+          tab.classList.remove('dragging');
+          tab.style.transform = '';
+          draggingTab = null;
+          soltarOtras();
+          window.chorus.splitDrop(Number(tab.dataset.id), window.__ladoSplit(ev, barra.getBoundingClientRect().right));
+          return;
+        }
+        if (ev && fuera(ev, { v: 120, h: 90 })) {
           tab.classList.remove('dragging');
           tab.style.transform = '';
           draggingTab = null;
@@ -693,23 +801,15 @@ try { const st = document.createElement('style'); st.textContent = '#downloads.d
           window.chorus.detachTab(Number(tab.dataset.id), ev.screenX, ev.screenY);
           return;
         }
-      }
-        let nuevo = i;
-        if (dx > 0) {
-          const borde = rects[i].right + dx;
-          list.forEach((t, j) => { if (j > i && rects[j].left + rects[j].width / 2 < borde) nuevo = j; });
-        } else if (dx < 0) {
-          const borde = rects[i].left + dx;
-          list.forEach((t, j) => { if (j < i && j < nuevo && rects[j].left + rects[j].width / 2 > borde) nuevo = j; });
-        }
-        const antes = tab.getBoundingClientRect().left;
+        const nuevo = destino(d);
+        const antes = ini(tab.getBoundingClientRect());
         const resto = list.filter((t) => t !== tab);
         soltarOtras();
-        tabsEl.insertBefore(tab, resto[nuevo] || null);
+        { const ref0 = resto[nuevo] || null; tabsEl.insertBefore(tab, (ref0 && ref0.parentNode !== tabsEl) ? ref0.parentNode : ref0); } /* SPLIT_TABS */
         tab.style.transition = 'none';
         tab.style.transform = '';
-        const despues = tab.getBoundingClientRect().left;
-        tab.style.transform = 'translateX(' + (antes - despues) + 'px)';
+        const despues = ini(tab.getBoundingClientRect());
+        tab.style.transform = tr(antes - despues);
         tab.getBoundingClientRect();
         tab.style.transition = 'transform 0.15s ease';
         tab.style.transform = '';
@@ -726,7 +826,7 @@ try { const st = document.createElement('style'); st.textContent = '#downloads.d
     });
 
     window.addEventListener('resize', updateNarrow);
-    const aplicarAjustes = (s) => { document.body.classList.toggle('compact', !!(s && s.compact)); document.body.classList.toggle('no-extbar', !!(s && s.showExtensions === false)); /* EXTENSIONES_APARIENCIA */ updateNarrow(); };
+    const aplicarAjustes = (s) => { document.body.classList.toggle('compact', !!(s && s.compact)); document.body.classList.toggle('vertical', !!(s && s.verticalTabs)); /* PESTANAS_VERTICALES */ document.body.classList.toggle('no-extbar', !!(s && s.showExtensions === false)); /* EXTENSIONES_APARIENCIA */ updateNarrow(); };
     try { window.chorus.onSettings(aplicarAjustes); window.chorus.getSettings().then(aplicarAjustes); } catch (e) {} // MODO_COMPACTO_2
     // EXT_PIN: icono de puzle y extensiones fijadas
     window.__extOcultas = [];
@@ -764,9 +864,10 @@ try { const st = document.createElement('style'); st.textContent = '#downloads.d
       bosque: { h: 150, s: 28, l: 11 },
       violeta: { h: 265, s: 32, l: 13 },
       ambar: { h: 30, s: 35, l: 12 },
-      rosa: { h: 335, s: 32, l: 13 }
+      rosa: { h: 335, s: 32, l: 13 },
+  still: { h: 0, s: 0, l: 15 }
     };
-    const BAR_VARS = ['--bg', '--text', '--muted', '--tab-hover', '--tab-active', '--tab-active-text', '--close-hover', '--toolbar', '--btn-text', '--btn-hover', '--address-bg', '--ring'];
+    const BAR_VARS = ['--bg', '--text', '--muted', '--tab-hover', '--tab-active', '--tab-active-text', '--close-hover', '--toolbar', '--btn-text', '--btn-hover', '--address-bg', '--ring', '--tabbar'];
     function customHsl(hex) {
       if (!/^#[0-9a-f]{6}$/i.test(hex || '')) return null;
       const n = parseInt(hex.slice(1), 16);
@@ -784,7 +885,7 @@ try { const st = document.createElement('style'); st.textContent = '#downloads.d
     function applyBarTheme(id, customColor) {
       BAR_VARS.forEach((v) => document.body.style.removeProperty(v));
       const t = (id === 'personalizado') ? customHsl(customColor) : BAR_THEMES[id];
-      if (!t) return;
+      ['--tabbar', '--toolbar', '--tab-active', '--address-bg', '--btn-hover'].forEach((k) => document.body.style.removeProperty(k)); if (!t) { if (!id || id === 'actual') { const vt = document.body.classList.contains('vertical'); const f = { '--tabbar': vt ? '#292a2d' : '#1e1f22', '--toolbar': vt ? '#292a2d' : '#35363a', '--tab-active': '#35363a', '--btn-hover': '#46474b' }; if (vt) f['--address-bg'] = '#35363a'; Object.keys(f).forEach((k) => document.body.style.setProperty(k, f[k])); } return; } // SEPARAR_FOX
       const c = (l) => 'hsl(' + t.h + ' ' + t.s + '% ' + l + '%)';
       const soft = (l) => 'hsl(' + t.h + ' ' + Math.min(t.s, 15) + '% ' + l + '%)';
       const vals = {
@@ -803,6 +904,7 @@ try { const st = document.createElement('style'); st.textContent = '#downloads.d
       };
       Object.keys(vals).forEach((k) => document.body.style.setProperty(k, vals[k]));
       if (id === 'grafito') document.body.style.setProperty('--address-bg', '#3A3C3C'); // GRAFITO_DIRECCIONES
+      if (id === 'still') { const s = { '--tabbar': '#323232', '--toolbar': '#323232', '--tab-active': '#545454', '--address-bg': '#474747', '--btn-hover': '#424242' }; Object.keys(s).forEach((k) => document.body.style.setProperty(k, s[k])); } else if (id !== 'grafito') { const cc = (l) => 'hsl(' + t.h + ' ' + t.s + '% ' + l + '%)'; const o2 = { '--tabbar': cc(t.l + 5), '--toolbar': cc(document.body.classList.contains('vertical') ? t.l + 5 : t.l + 10), '--tab-active': cc(t.l + 10), '--address-bg': cc(document.body.classList.contains('vertical') ? t.l + 12 : t.l + 7) }; Object.keys(o2).forEach((k) => document.body.style.setProperty(k, o2[k])); } // SEPARAR_BARRAS
     }
     window.chorus.getSettings().then((s) => applyBarTheme(s && s.theme, s && s.customColor));
     window.chorus.onSettings((s) => applyBarTheme(s && s.theme, s && s.customColor));
@@ -834,10 +936,10 @@ try { const st = document.createElement('style'); st.textContent = '#downloads.d
         if (s.active > 0) {
           clearTimeout(doneTimer);
           btn.classList.remove('done');
-          btn.classList.add('active');
+          if (!btn.classList.contains('active')) { btn.classList.add('dl-start'); setTimeout(() => btn.classList.remove('dl-start'), 700); } btn.classList.add('active'); /* DESCARGA_FIREFOX */
           if (s.progress >= 0) {
             btn.classList.remove('indet');
-            btn.style.setProperty('--p', String(s.progress));
+            btn.style.setProperty('--p', String(s.progress)); try { const pp = Math.max(0, Math.min(1, s.progress)); document.getElementById('dlA').setAttribute('offset', pp); document.getElementById('dlB').setAttribute('offset', pp); } catch (e) {}
             btn.title = baseTitle() + ' (' + Math.round(s.progress * 100) + '%)';
           } else {
             btn.classList.add('indet');
@@ -845,7 +947,7 @@ try { const st = document.createElement('style'); st.textContent = '#downloads.d
           }
         } else {
           btn.classList.remove('active', 'indet');
-          btn.style.removeProperty('--p');
+          btn.style.removeProperty('--p'); try { document.getElementById('dlA').setAttribute('offset', 0); document.getElementById('dlB').setAttribute('offset', 0); } catch (e) {}
           btn.title = baseTitle();
           if (s.completed) {
             btn.classList.add('done');
@@ -861,8 +963,8 @@ try { const st = document.createElement('style'); st.textContent = '#downloads.d
     (function () {
       const wrap = document.getElementById('addrwrap');
       const lock = document.getElementById('lock');
-      const CLOSED = '<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
-      const OPEN = '<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 7.5-1.9"/></svg>';
+      const CLOSED = '<svg viewBox="0 0 24 24"><path d="M4 8h9"/><path d="M17 8h3"/><circle cx="15" cy="8" r="2"/><path d="M4 16h3"/><path d="M11 16h9"/><circle cx="9" cy="16" r="2"/></svg>';
+      const OPEN = '<svg viewBox="0 0 24 24"><path d="M4 8h9"/><path d="M17 8h3"/><circle cx="15" cy="8" r="2"/><path d="M4 16h3"/><path d="M11 16h9"/><circle cx="9" cy="16" r="2"/></svg>';
       const LOCK_TEXT = {
         en: { secure: 'Secure connection (HTTPS)', insecure: 'Not secure: this site does not use HTTPS' },
         es: { secure: 'Conexi\u00f3n segura (HTTPS)', insecure: 'No seguro: esta web no usa HTTPS' }
@@ -877,11 +979,11 @@ try { const st = document.createElement('style'); st.textContent = '#downloads.d
         lock.className = kind;
         lock.innerHTML = kind === 'secure' ? CLOSED : (kind === 'insecure' ? OPEN : '');
         lock.title = kind ? (LOCK_TEXT[lang] || LOCK_TEXT.es)[kind] : '';
-        wrap.classList.toggle('has-lock', !!kind);
+        const __pg = /^file:.*[\/\\](downloads|history|settings|extensions)\.html/i.test(String(url || '')); if (__pg) { lock.className = 'internal'; lock.innerHTML = '<svg viewBox="200 192 624 624" style="fill:none;stroke:#E6E6E6;stroke-width:48;stroke-linejoin:round;stroke-linecap:round;filter:none"><path d="M512 230L740 779L512 660L284 779Z"/></svg>'; lock.title = ''; } try { lock.style.pointerEvents = __pg ? 'none' : 'auto'; lock.style.cursor = __pg ? 'default' : 'pointer'; } catch (e) {} wrap.classList.toggle('has-lock', !!kind || __pg); /* ICONO_BARRA */
       }
       window.chorus.getSettings().then((s) => { lang = (s && s.language) || 'es'; updateLock(lastUrl); });
       window.chorus.onSettings((s) => { lang = (s && s.language) || 'es'; updateLock(lastUrl); });
-      window.chorus.onUrlChange((url) => updateLock(url));
+      window.chorus.onUrlChange((url) => updateLock(url)); try { lock.style.cursor = 'pointer'; lock.style.pointerEvents = 'auto'; lock.onclick = (ev) => { ev.stopPropagation(); const r = lock.getBoundingClientRect(); window.chorus.openSiteInfo(r.left, r.bottom); }; } catch (e) {} /* SITIO_POPUP */
     })();
   </script>
 <div id="findbar">
@@ -937,6 +1039,468 @@ try { const st = document.createElement('style'); st.textContent = '#downloads.d
       closeBtn.onclick = () => window.chorus.findClose();
     })();
   </script>
+<script>
+// ADBLOCK_ICONO: lee el ajuste y pone o quita la clase que activa el fantasma
+(function () {
+  const aplicar = (s) => { try { document.body.classList.toggle('adblock-default', !!s && s.adblockIcon === 'default'); } catch (e) {} };
+  try { window.chorus.getSettings().then(aplicar); window.chorus.onSettings(aplicar); } catch (e) {}
+})();
+</script>
+<script>/* FUENTE_ELEGIDA_UI */
+(function () {
+  const FUENTES = { inter: "'Inter UI', system-ui, 'Segoe UI', sans-serif", arial: 'Arial, Helvetica, sans-serif', segoe: "'Segoe UI', system-ui, sans-serif", verdana: 'Verdana, Geneva, sans-serif', tahoma: 'Tahoma, Geneva, sans-serif', trebuchet: "'Trebuchet MS', Helvetica, sans-serif", georgia: "Georgia, 'Times New Roman', serif" };
+  const aplicar = (s) => {
+    try {
+      const id = (s && s.webFont) || 'inter';
+      const f = FUENTES[id];
+      if (!f) { document.body.classList.remove('fuente-propia'); return; }
+      document.body.style.setProperty('--fuente-ui', f);
+      document.body.classList.add('fuente-propia');
+    } catch (e) {}
+  };
+  try { window.chorus.getSettings().then(aplicar); window.chorus.onSettings(aplicar); } catch (e) {}
+})();
+</script>
+<script>/* EXT_CLIC_DERECHO */
+document.addEventListener('contextmenu', (ev) => {
+  try {
+    const ruta = ev.composedPath();
+    const barra = document.getElementById('extbar');
+    if (!barra || ruta.indexOf(barra) === -1) return;
+    const btn = ruta.find((n) => n && n.tagName === 'BUTTON' && /^[a-z0-9_-]{8,64}$/i.test(String(n.id || '')));
+    if (!btn) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    ev.stopImmediatePropagation();
+    window.chorus.extContextMenu(btn.id, ev.clientX, ev.clientY);
+  } catch (e) {}
+}, true);
+</script>
+<style>/* DIRECCIONES_TEXTO */ body #address { font-size: 13px !important; } body.compact #address { font-size: 12px !important; }</style>
+<style>/* PESTANAS_VERTICALES */
+body.vertical #tabbar { position: fixed !important; left: 0 !important; top: 36px !important; bottom: 0 !important; width: 152px !important; height: auto !important; padding: 4px 6px 6px 6px !important; box-sizing: border-box !important; display: flex !important; flex-direction: column !important; align-items: stretch !important; gap: 4px !important; overflow: hidden !important; -webkit-app-region: no-drag !important; }
+body.vertical.compact #tabbar { top: 30px !important; }
+body.vertical #tabs { flex-direction: column !important; align-items: stretch !important; flex: 1 1 auto !important; min-height: 0 !important; overflow-y: auto !important; overflow-x: hidden !important; gap: 2px !important; }
+body.vertical #tabs .tab { width: 100% !important; flex: none !important; height: 32px !important; min-width: 0 !important; box-sizing: border-box !important; }
+body.vertical .tab.narrow { padding: 0 6px 0 10px !important; justify-content: flex-start !important; }
+body.vertical .tab.narrow .tab-title { display: block !important; }
+body.vertical .tab.narrow .tab-audio { display: flex !important; }
+body.vertical .tab.narrow .tab-icon { display: flex !important; margin-right: 8px !important; }
+body.vertical .tab.narrow .tab-close { display: flex !important; }
+body.vertical #newtab { order: -1 !important; width: 100% !important; height: 32px !important; display: flex !important; align-items: center !important; justify-content: flex-start !important; gap: 10px !important; padding: 0 10px !important; border-radius: 8px !important; font-size: 13px !important; }
+body.vertical #newtab svg { width: 16px !important; height: 16px !important; flex: none !important; }
+body.vertical #newtab::after { content: attr(title); }
+body.vertical #toolbar { padding-right: 150px !important; box-sizing: border-box !important; -webkit-app-region: drag; }
+body.vertical #nav, body.vertical #addrwrap, body.vertical #right { -webkit-app-region: no-drag; }
+</style>
+<style>/* BOTON_BARRA_LATERAL: botones mas pequenos y pestanas laterales mas espaciadas */
+body #toolbar button { zoom: 0.86; }
+browser-action-list::part(action) { width: 24px; height: 24px; }
+body #toolbar #sidebtn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; }
+body.vertical #toolbar #sidebtn { color: #ffffff; }
+body.vertical #tabbar { padding: 8px !important; }
+body.vertical #tabs { gap: 6px !important; }
+body.vertical #tabs .tab { height: 38px !important; border-radius: 10px !important; padding: 0 10px 0 12px !important; font-size: 13px !important; }
+body.vertical .tab.narrow { padding: 0 10px 0 12px !important; }
+body.vertical .tab.narrow .tab-icon { margin-right: 10px !important; }
+body.vertical #newtab { height: 38px !important; border-radius: 10px !important; gap: 12px !important; padding: 0 12px !important; margin-bottom: 6px !important; }
+</style>
+<script>/* BOTON_BARRA_LATERAL */
+(() => {
+  const b = document.getElementById('sidebtn');
+  if (!b) return;
+  b.onclick = () => { try { window.chorus.toggleSidebar(); } catch (e) {} };
+  const poner = (s) => { b.title = (s && s.language === 'es') ? 'Barra lateral de pesta\u00f1as' : 'Tabs sidebar'; };
+  try { window.chorus.getSettings().then(poner); window.chorus.onSettings(poner); } catch (e) {}
+})();
+</script>
+<style>/* BARRA_LATERAL_IGUAL: pestanas laterales con el aspecto de la referencia */
+body.vertical #tabbar { padding: 8px 6px !important; }
+body.vertical #tabs { gap: 4px !important; }
+body.vertical #tabs .tab { height: 36px !important; border-radius: 8px !important; padding: 0 6px 0 10px !important; font-size: 13px !important; font-weight: 400 !important; }
+body.vertical #tabs .tab .tab-title { font-weight: 400 !important; }
+body.vertical #tabs .tab .tab-close { display: none !important; }
+body.vertical #tabs .tab:hover .tab-close { display: flex !important; }
+body.vertical .tab.narrow { padding: 0 6px 0 10px !important; }
+body.vertical .tab.narrow .tab-icon { margin-right: 8px !important; }
+body.vertical #newtab { height: 34px !important; border-radius: 8px !important; gap: 8px !important; padding: 0 6px 0 10px !important; margin-bottom: 2px !important; opacity: 0.72; text-align: left !important; font-size: 13px !important; font-weight: 400 !important; white-space: nowrap !important; }
+body.vertical #newtab:hover { opacity: 1; }
+body.vertical #newtab svg { stroke-width: 2 !important; }
+body.vertical #newtab::after { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
+body.vertical #toolbar #sidebtn { margin-right: 128px; }
+</style>
+<style>/* ICONOS_BARRA_AJUSTE: recargar algo mas grande e iconos de la derecha como antes */
+body #toolbar #reload { zoom: 0.98; }
+body #toolbar #right button { zoom: 1; }
+browser-action-list::part(action) { width: 28px; height: 28px; }
+</style>
+<style>/* BARRA_LATERAL_OCULTA: icono de recargar nuevo y barra lateral oculta en las webs */
+#toolbar #reload svg { stroke-width: 1.7 !important; stroke-linecap: round !important; stroke-linejoin: round !important; }
+#toolbar #reload svg path:last-child { fill: currentColor !important; stroke-width: 1 !important; }
+body.vertical.side-hidden #tabbar { transform: translateX(-100%); opacity: 0; pointer-events: none; } /* BOTON_SOLO_WEBS */
+body.vertical.side-hidden #toolbar #sidebtn { margin-right: 0 !important; color: var(--btn-text, #c4c7c5); }
+</style>
+<script>/* BARRA_LATERAL_OCULTA */
+(() => {
+  const poner = (v) => document.body.classList.toggle('side-hidden', !!v);
+  try { window.chorus.onSidebarState(poner); window.chorus.getSidebarState().then(poner); } catch (e) {}
+})();
+</script>
+<style>/* PARAR_CARGA: mientras carga, recargar se convierte en una X */
+body.cargando #toolbar #reload svg { stroke-width: 1.7 !important; stroke-linecap: round !important; }
+body.cargando #toolbar #reload svg path:last-child { fill: none !important; stroke-width: 1.7 !important; }
+/* SB_ANIM_V2 */
+#toolbar button { transition: transform .12s ease, background .15s ease; }
+#toolbar button:active { transform: scale(.86); }
+#toolbar #reload:active { transform: none; }
+</style>
+<script>/* PARAR_CARGA */
+(() => {
+  const b = document.getElementById('reload');
+  if (!b) return;
+  const X = '<svg viewBox="0 0 24 24"><path d="M7 7l10 10"/><path d="M17 7L7 17"/></svg>';
+  let recargar = '', tituloAntes = '', cargando = false, idioma = 'es';
+  const aplicar = (v) => {
+    if (v === cargando) return;
+    cargando = v;
+    document.body.classList.toggle('cargando', v);
+    if (v) { recargar = b.innerHTML; tituloAntes = b.title; b.innerHTML = X; b.title = idioma === 'es' ? 'Detener la carga' : 'Stop loading'; }
+    else { if (recargar) b.innerHTML = recargar; b.title = tituloAntes || b.title; }
+  };
+  let tOn = null, tOff = null, desde = 0;
+  const poner = (v) => {
+    if (v) {
+      clearTimeout(tOff); tOff = null;
+      if (cargando || tOn) return;
+      tOn = setTimeout(() => { tOn = null; desde = Date.now(); aplicar(true); }, 300);
+    } else {
+      clearTimeout(tOn); tOn = null;
+      if (!cargando) return;
+      clearTimeout(tOff);
+      tOff = setTimeout(() => { tOff = null; aplicar(false); }, Math.max(150, 500 - (Date.now() - desde)));
+    }
+  };
+  try { window.chorus.getSettings().then((s) => { if (s && s.language) idioma = s.language; }); window.chorus.onSettings((s) => { if (s && s.language) idioma = s.language; }); } catch (e) {}
+  try { window.chorus.onTabsChange((lista) => { const a = (lista || []).find((t) => t.active); poner(!!(a && a.loading)); }); } catch (e) {}
+})();
+</script>
+<style>/* SB_ARRASTRE: la barra de arriba arrastra la ventana; solo lo pulsable no */
+#toolbar, #toolbar #nav, #toolbar #right { -webkit-app-region: drag !important; }
+#toolbar button, #toolbar input, #toolbar #addrwrap, #toolbar browser-action-list { -webkit-app-region: no-drag !important; }
+body.vertical #toolbar #sidebtn { color: var(--btn-text, #c4c7c5); }
+</style>
+<style>/* SB_ORDEN_V */
+body.vertical #tabs .tab, body.vertical #newtab { -webkit-app-region: no-drag; }
+body.vertical #tabs .tab { touch-action: none; user-select: none; }
+</style>
+<style>/* SB_SOMBRA_V3: sombra de siempre, redondeada y sin recortar, al arrastrar pestanas */
+body.vertical #tabbar:has(.tab.dragging), body.vertical #tabs:has(.tab.dragging) { overflow: visible !important; }
+body.vertical #tabs .tab.dragging { border-radius: 10px !important; box-shadow: 0 4px 14px rgba(0,0,0,0.5) !important; filter: none !important; outline: none !important; }
+</style>
+<style>/* SB_CLASICO: el boton de la barra lateral solo existe con las pestanas laterales */
+body:not(.vertical) #toolbar #sidebtn { display: none !important; }
+</style>
+<style>/* SB_REUNIR: en modo Clasico, atras / adelante / recargar un poco mas a la derecha */
+body:not(.vertical) #toolbar #nav { margin-left: 4px; }
+</style>
+<style>/* SB_PUNTA: la punta de la flecha de atras cuadra con el marco de la izquierda (con pestanas laterales visibles) */
+body.vertical:not(.side-hidden) #toolbar #sidebtn { margin-right: 131px !important; }
+</style>
+<style>/* SB_BARRA_V3: solo el ancho de la barra de direcciones (alto y letra como antes) */
+body.vertical #toolbar #address { width: 100% !important; box-sizing: border-box !important; }
+</style>
+<style>/* DESCARGAS_LATERAL */
+body.vertical #downloads { position: fixed !important; left: 8px !important; bottom: 8px !important; z-index: 50 !important; -webkit-app-region: no-drag !important; }
+body.vertical #tabbar { padding-bottom: 48px !important; }
+</style>
+<style>/* FANTASMA_LATERAL */
+body.vertical #adblock { position: fixed !important; left: 108px !important; bottom: 8px !important; z-index: 50 !important; -webkit-app-region: no-drag !important; }
+</style>
+<style>/* LATERAL_120 */
+body.vertical #tabbar { width: 120px !important; }
+body.vertical #adblock { left: 84px !important; }
+</style>
+<style>/* LATERAL_CENTRADO */
+body.vertical #tabbar { padding: 8px 1px 48px 8px !important; }
+body.vertical #downloads, body.vertical #adblock { width: 28px !important; height: 28px !important; bottom: 8px !important; display: flex !important; align-items: center !important; justify-content: center !important; }
+body.vertical #downloads { left: 8px !important; }
+body.vertical #adblock { left: 91px !important; }
+</style>
+<style>/* LATERAL_136B */
+body.vertical #tabbar { width: 136px !important; }
+body.vertical #adblock { left: 107px !important; }
+</style>
+<style>/* LATERAL_144B */
+body.vertical #tabbar { width: 144px !important; }
+body.vertical #adblock { left: 115px !important; }
+</style>
+<style>/* PIN_LATERAL */
+body.vertical #tabbar { gap: 4px !important; overflow-y: auto !important; overflow-x: hidden !important; }
+body.vertical #tabs { display: contents !important; }
+body.vertical #tabs .tab.pinned { order: -2 !important; flex: none !important; width: 100% !important; min-width: 0 !important; max-width: none !important; height: 36px !important; }
+body.vertical #tabs .tab.pinned .tab-title { display: block !important; }
+body.vertical #tabs .tab.pinned .tab-close, body.vertical #tabs .tab.pinned:hover .tab-close { display: none !important; }
+body.vertical #newtab { order: -1 !important; flex: none !important; }
+</style>
+<style>/* PIN_SOLO_ICONO */
+body.vertical #tabs .tab.pinned { justify-content: center !important; padding: 0 !important; }
+body.vertical #tabs .tab.pinned .tab-title, body.vertical #tabs .tab.pinned .tab-audio, body.vertical #tabs .tab.pinned .tab-close { display: none !important; }
+body.vertical #tabs .tab.pinned .tab-icon { display: flex !important; margin: 0 !important; align-items: center !important; justify-content: center !important; }
+</style>
+<style>/* DESCARGAS_GRANDE */
+body.vertical #downloads { width: 34px !important; height: 34px !important; left: 5px !important; bottom: 5px !important; }
+body.vertical #toolbar #downloads svg { width: 22px !important; height: 22px !important; }
+</style>
+<style>/* LATERAL_NIVEL */
+body.vertical #downloads, body.vertical #adblock { position: fixed !important; top: auto !important; right: auto !important; bottom: 6px !important; width: 32px !important; height: 32px !important; min-width: 32px !important; min-height: 32px !important; margin: 0 !important; padding: 0 !important; box-sizing: border-box !important; display: flex !important; align-items: center !important; justify-content: center !important; line-height: 0 !important; transform: none !important; }
+body.vertical #downloads { left: 8px !important; }
+body.vertical #adblock { left: 111px !important; }
+body.vertical #toolbar #downloads svg, body.vertical #toolbar #adblock svg, body.vertical #toolbar #adblock::before { width: 20px !important; height: 20px !important; margin: 0 !important; display: block !important; }
+</style>
+<style>/* LATERAL_NIVEL2 */
+body.vertical #downloads { position: fixed !important; top: auto !important; right: auto !important; left: 8px !important; bottom: 6px !important; width: 34px !important; height: 34px !important; min-width: 34px !important; min-height: 34px !important; margin: 0 !important; padding: 0 !important; box-sizing: border-box !important; display: flex !important; align-items: center !important; justify-content: center !important; transform: none !important; }
+body.vertical #adblock { position: fixed !important; top: auto !important; right: auto !important; left: 111px !important; bottom: 9px !important; width: 28px !important; height: 28px !important; min-width: 28px !important; min-height: 28px !important; margin: 0 !important; padding: 0 !important; box-sizing: border-box !important; display: flex !important; align-items: center !important; justify-content: center !important; transform: none !important; }
+body.vertical #toolbar #downloads svg { width: 22px !important; height: 22px !important; margin: 0 !important; display: block !important; }
+body.vertical #toolbar #adblock svg, body.vertical #toolbar #adblock::before { width: 18px !important; height: 18px !important; margin: 0 !important; display: block !important; }
+</style>
+<style>/* LATERAL_NIVEL3 */
+body.vertical #downloads, body.vertical #adblock { position: fixed !important; top: auto !important; right: auto !important; bottom: 8px !important; width: 28px !important; height: 28px !important; min-width: 28px !important; min-height: 28px !important; margin: 0 !important; padding: 0 !important; box-sizing: border-box !important; display: flex !important; align-items: center !important; justify-content: center !important; transform: none !important; }
+body.vertical #downloads { left: 8px !important; }
+body.vertical #adblock { left: 115px !important; }
+body.vertical #toolbar #downloads svg { width: var(--icono, 16px) !important; height: var(--icono, 16px) !important; margin: 0 !important; }
+body.vertical #toolbar #adblock::before { width: var(--icono, 16px) !important; height: var(--icono, 16px) !important; }
+body.vertical:not(.adblock-default) #toolbar #adblock > * { display: none !important; }
+</style>
+<style>/* DESCARGAS_NITIDO */
+body.vertical #downloads { width: 28px !important; height: 28px !important; left: 8px !important; bottom: 8px !important; transform: none !important; will-change: auto !important; filter: none !important; opacity: 1 !important; }
+body.vertical #toolbar #downloads svg { width: 18px !important; height: 18px !important; margin: 0 !important; transform: none; shape-rendering: geometricPrecision; image-rendering: auto; }
+body.vertical #toolbar #downloads svg path { stroke-width: 1.75 !important; vector-effect: none; }
+</style>
+<style>/* DL_VERTICAL_OCULTO */
+body.vertical #downloads[style*="display: none"] { display: none !important; }
+</style>
+<style>/* PIN_ABIERTA */
+body.vertical #tabs .tab.pinned.active { background: color-mix(in srgb, var(--ring, #5b9bff) 35%, transparent) !important; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ring, #5b9bff) 60%, transparent) !important; }
+body.vertical #tabs .tab.pinned.active:hover { background: color-mix(in srgb, var(--ring, #5b9bff) 42%, transparent) !important; }
+</style>
+<style>/* PIN_COLOR_FAVICON */
+body.vertical #tabs .tab.pinned.active { background: color-mix(in srgb, var(--pin-color, var(--ring, #5b9bff)) 30%, transparent) !important; box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--pin-color, var(--ring, #5b9bff)) 85%, transparent) !important; }
+body.vertical #tabs .tab.pinned.active:hover { background: color-mix(in srgb, var(--pin-color, var(--ring, #5b9bff)) 38%, transparent) !important; }
+</style>
+<script>/* SB_BARRA_V5: barra larga y centrada entre los botones de la izquierda y los de la derecha */
+(() => {
+  const aw = document.getElementById('addrwrap'), inp = document.getElementById('address'), nav = document.getElementById('nav'), right = document.getElementById('right'), bar = document.getElementById('toolbar'), rel = document.getElementById('reload');
+  if (!aw || !nav || !right || !bar || !rel) return;
+  const MARGEN = 110, MAX = 1100, MIN = 220, GAP = 16; /* BARRA_MARGEN */
+  let raf = 0;
+  const limpiar = () => { ['width', 'flex', 'min-width', 'max-width', 'transform'].forEach((p) => aw.style.removeProperty(p)); if (inp) inp.style.removeProperty('width'); };
+  const bordes = () => {
+    const izq = rel.getBoundingClientRect().right;
+    let der = Infinity;
+    [...right.children].forEach((c) => {
+      const r = c.getBoundingClientRect();
+      if (r.width > 0 && r.height > 0 && getComputedStyle(c).visibility !== 'hidden' && getComputedStyle(c).position !== 'fixed') der = Math.min(der, r.left); /* BARRA_SIN_FIXED */
+    });
+    if (!isFinite(der)) der = right.getBoundingClientRect().left;
+    return { izq: izq, der: der };
+  };
+  const colocar = () => {
+    raf = 0;
+    try {
+      limpiar();
+      if (!document.body.classList.contains('vertical')) return;
+      let e = bordes();
+      const libre = e.der - e.izq;
+      let W = (libre - 2 * MARGEN >= MIN) ? Math.min(MAX, libre - 2 * MARGEN) : Math.max(150, libre - 2 * GAP);
+      W = Math.round(W);
+      aw.style.setProperty('flex', 'none', 'important');
+      aw.style.setProperty('min-width', '0', 'important');
+      aw.style.setProperty('max-width', 'none', 'important');
+      aw.style.setProperty('width', W + 'px', 'important');
+      if (inp) inp.style.setProperty('width', '100%', 'important');
+      e = bordes();
+      const a = aw.getBoundingClientRect();
+      const dest = e.izq + (e.der - e.izq - W) / 2;
+      const dx = Math.round(dest - a.left);
+      if (dx) aw.style.setProperty('transform', 'translateX(' + dx + 'px)', 'important');
+    } catch (er) {}
+  };
+  const pedir = () => { if (!raf) raf = requestAnimationFrame(colocar); };
+  new MutationObserver(pedir).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  if (window.ResizeObserver) new ResizeObserver(pedir).observe(bar);
+  window.addEventListener('resize', pedir);
+  try { window.chorus.onSettings(pedir); } catch (er) {}
+  [400, 1500, 3500].forEach((t) => setTimeout(pedir, t));
+  pedir();
+})();
+</script>
+<script>/* TEMAS_VERTICAL */
+(() => {
+  let v = document.body.classList.contains('vertical');
+  new MutationObserver(() => {
+    const n = document.body.classList.contains('vertical');
+    if (n === v) return;
+    v = n;
+    try { window.chorus.getSettings().then((s) => applyBarTheme(s && s.theme, s && s.customColor)).catch(() => {}); } catch (e) {}
+  }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+})();
+</script>
+<script>/* PIN_COLOR_FAVICON */
+(() => {
+  const tabsEl = document.getElementById('tabs');
+  if (!tabsEl) return;
+  const cache = new Map();
+  const dominante = (img) => {
+    try {
+      const c = document.createElement('canvas'); c.width = 16; c.height = 16;
+      const x = c.getContext('2d', { willReadFrequently: true });
+      x.drawImage(img, 0, 0, 16, 16);
+      const d = x.getImageData(0, 0, 16, 16).data;
+      const b = Array.from({ length: 12 }, () => ({ w: 0, r: 0, g: 0, b: 0 }));
+      let tr = 0, tg = 0, tb = 0, tn = 0;
+      for (let i = 0; i < d.length; i += 4) {
+        const r = d[i], g = d[i + 1], bl = d[i + 2], a = d[i + 3];
+        if (a < 128) continue;
+        tr += r; tg += g; tb += bl; tn++;
+        const mx = Math.max(r, g, bl), mn = Math.min(r, g, bl);
+        if (mx < 40 || mn > 225) continue;
+        const s = (mx - mn) / mx;
+        if (s < 0.25) continue;
+        let h;
+        if (mx === mn) h = 0;
+        else if (mx === r) h = ((g - bl) / (mx - mn) + 6) % 6;
+        else if (mx === g) h = (bl - r) / (mx - mn) + 2;
+        else h = (r - g) / (mx - mn) + 4;
+        const k = Math.min(11, Math.floor(h * 2));
+        const w = s * (mx / 255);
+        b[k].w += w; b[k].r += r * w; b[k].g += g * w; b[k].b += bl * w;
+      }
+      let best = null;
+      b.forEach((e) => { if (e.w > 0 && (!best || e.w > best.w)) best = e; });
+      if (best) return 'rgb(' + Math.round(best.r / best.w) + ',' + Math.round(best.g / best.w) + ',' + Math.round(best.b / best.w) + ')';
+      if (tn) return 'rgb(' + Math.round(tr / tn) + ',' + Math.round(tg / tn) + ',' + Math.round(tb / tn) + ')';
+    } catch (e) {}
+    return '';
+  };
+  const poner = (tab, col) => { if (col) tab.style.setProperty('--pin-color', col); else tab.style.removeProperty('--pin-color'); };
+  const revisar = () => {
+    tabsEl.querySelectorAll('.tab.pinned').forEach((tab) => {
+      const im = tab.querySelector('.tab-icon img');
+      if (!im || !im.src) { poner(tab, ''); return; }
+      const src = im.src;
+      if (cache.has(src)) { poner(tab, cache.get(src)); return; }
+      const copia = new Image();
+      copia.crossOrigin = 'anonymous';
+      copia.onload = () => { const col = dominante(copia); cache.set(src, col); poner(tab, col); };
+      copia.onerror = () => { cache.set(src, ''); };
+      copia.src = src;
+    });
+  };
+  let raf = 0;
+  const pedir = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; revisar(); }); };
+  new MutationObserver(pedir).observe(tabsEl, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'src'] });
+  pedir();
+})();
+</script>
+<style>/* BOTON_SOLO_WEBS: el boton de la barra solo funciona en las webs; en la pagina de inicio se ve apagado */
+body.vertical #tabbar { transition: transform 0.2s cubic-bezier(0.215, 0.61, 0.355, 1), opacity 0.2s ease; }
+body #toolbar #sidebtn { transition: margin-right 0.2s cubic-bezier(0.215, 0.61, 0.355, 1), color 0.2s ease; }
+#toolbar #sidebtn.desactivado { opacity: 0.35; pointer-events: none; }
+</style>
+<script>/* BOTON_SOLO_WEBS */
+(() => {
+  const b = document.getElementById('sidebtn');
+  if (!b) return;
+  let vertical = false, web = true;
+  const aplicar = () => b.classList.toggle('desactivado', vertical && !web);
+  try { window.chorus.getSettings().then((s) => { vertical = !!(s && s.verticalTabs); aplicar(); }); window.chorus.onSettings((s) => { vertical = !!(s && s.verticalTabs); aplicar(); }); } catch (e) {}
+  try { window.chorus.onUrlChange((u) => { web = /^https?:/i.test(String(u || '')); aplicar(); }); } catch (e) {}
+})();
+</script>
+<style>/* SPLIT_CSS: pestanas de la pantalla dividida juntas en una fila */
+.splitpair { display: flex; align-items: center; gap: 2px; padding: 2px; box-sizing: border-box; min-width: 0; flex: 0 1 300px; border-radius: 10px; background: color-mix(in srgb, var(--muted, #c4c7c5) 10%, transparent); border: 1px solid color-mix(in srgb, var(--muted, #c4c7c5) 25%, transparent); }
+body #tabs .splitpair .tab { flex: 1 1 0 !important; width: auto !important; min-width: 0 !important; max-width: none !important; border-radius: 8px !important; }
+body #tabs .splitpair .tab .tab-close { display: flex !important; }
+body.vertical #tabs .splitpair { width: 100%; flex: none; }
+body.vertical #tabs .splitpair .tab { height: 32px !important; padding: 0 4px 0 8px !important; font-size: 12px !important; }
+body.vertical #tabs .splitpair .tab .tab-icon { margin-right: 6px !important; }
+</style>
+<style>/* SPLIT_CSS2: en la pareja, la X siempre cabe */
+body #tabs .splitpair .tab { overflow: hidden; gap: 0 !important; }
+body.vertical #tabs .splitpair .tab { padding: 0 2px 0 6px !important; }
+body.vertical #tabs .splitpair .tab .tab-icon { margin-right: 4px !important; flex: none; }
+body #tabs .splitpair .tab .tab-title { flex: 1 1 0 !important; min-width: 0 !important; overflow: hidden; text-overflow: ellipsis; }
+body #tabs .splitpair .tab .tab-audio { flex: none !important; width: 16px !important; height: 16px !important; min-width: 0 !important; padding: 0 !important; }
+body #tabs .splitpair .tab .tab-audio svg { width: 14px !important; height: 14px !important; }
+body #tabs .splitpair .tab .tab-close { flex: none !important; width: 18px !important; height: 18px !important; margin-left: 0 !important; }
+</style>
+<style>/* SPLIT_CSS3: en la pareja solo icono, silenciar y X */
+body #tabs .splitpair .tab .tab-title { display: none !important; }
+body #tabs .splitpair .tab { justify-content: space-between !important; gap: 0 !important; padding: 0 6px !important; overflow: hidden; }
+body #tabs .splitpair .tab .tab-icon { display: flex !important; margin: 0 !important; flex: none !important; }
+body #tabs .splitpair .tab .tab-audio { display: flex !important; flex: none !important; width: 18px !important; height: 18px !important; min-width: 0 !important; padding: 0 !important; margin: 0 !important; }
+body #tabs .splitpair .tab .tab-audio svg { width: 14px !important; height: 14px !important; }
+body #tabs .splitpair .tab .tab-close { display: flex !important; flex: none !important; width: 18px !important; height: 18px !important; margin: 0 !important; }
+</style>
+<style>/* SPLIT_CSS4: en la pareja el titulo cede sitio al silenciar y a la X */
+body #tabs .splitpair .tab { justify-content: flex-start !important; gap: 4px !important; padding: 0 4px 0 6px !important; overflow: hidden; }
+body #tabs .splitpair .tab .tab-title { display: block !important; flex: 1 1 0 !important; min-width: 0 !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
+body #tabs .splitpair .tab .tab-icon { display: flex !important; margin: 0 !important; flex: none !important; }
+body #tabs .splitpair .tab .tab-audio { display: flex !important; flex: none !important; }
+body #tabs .splitpair .tab .tab-close { display: flex !important; flex: none !important; margin: 0 !important; }
+</style>
+<style>/* SB_ANCHO */
+body.vertical:not(.side-hidden) #tabbar { width: var(--sbw, 152px) !important; }
+body.vertical:not(.side-hidden) #toolbar #sidebtn { margin-right: calc(var(--sbw, 152px) - 13px) !important; }
+body.vertical #adblock { left: calc(var(--sbw, 152px) - 29px) !important; }
+#sbresize { display: none; position: fixed; top: 36px; bottom: 0; width: 4px; z-index: 60; cursor: col-resize; -webkit-app-region: no-drag; }
+body.vertical:not(.side-hidden) #sbresize { display: block; left: calc(var(--sbw, 152px) + 2px); }
+body.vertical #toolbar #sidebtn, body.vertical #toolbar #nav { flex-shrink: 0 !important; } body.vertical #toolbar #addrwrap { min-width: 0 !important; margin-left: 8px !important; } /* BOTONES_NO_ENCOGEN */
+body.vertical.compact #sbresize { top: 30px; }
+</style>
+<div id="sbresize"></div>
+<script>/* SB_ANCHO */
+(() => {
+  const h = document.getElementById('sbresize');
+  if (!h) return;
+  const root = document.documentElement;
+  const setW = (w) => { try { root.style.setProperty('--sbw', w + 'px'); } catch (e) {} };
+  const clamp = (w) => Math.max(152, Math.min(360, Math.round(w)));
+  let cur = 152, drag = false, raf = 0;
+  try { window.chorus.sidebarWidthGet().then((w) => { cur = w; setW(w); }); } catch (e) {}
+  try { window.chorus.onSidebarWidth((w) => { if (!drag) { cur = w; setW(w); } }); } catch (e) {}
+  h.addEventListener('pointerdown', (e) => { drag = true; try { h.setPointerCapture(e.pointerId); } catch (er) {} document.body.style.userSelect = 'none'; e.preventDefault(); });
+  h.addEventListener('pointermove', (e) => {
+    if (!drag) return;
+    cur = clamp(e.clientX);
+    setW(cur);
+    if (!raf) raf = requestAnimationFrame(() => { raf = 0; try { window.chorus.sidebarWidthSet(cur, false); } catch (er) {} });
+  });
+  const fin = () => { if (!drag) return; drag = false; document.body.style.userSelect = ''; try { window.chorus.sidebarWidthSet(cur, true); } catch (er) {} };
+  h.addEventListener('pointerup', fin);
+  h.addEventListener('pointercancel', fin);
+  h.addEventListener('dblclick', () => { cur = 152; setW(152); try { window.chorus.sidebarWidthSet(152, true); } catch (er) {} });
+})();
+</script>
+<script>/* SPLIT_LADO */
+window.__ladoSplit = function (ev, bx) {
+  var top = 40, w = window.innerWidth - bx, h = window.innerHeight - top;
+  var fx = (ev.clientX - bx) / Math.max(1, w), fy = (ev.clientY - top) / Math.max(1, h);
+  if (fy < 0.25) return 'top';
+  if (fy > 0.75) return 'bottom';
+  return fx < 0.5 ? 'left' : 'right';
+};
+</script>
+<script>/* SB_RESYNC: tras pantalla completa, reaplica estado y ancho de la barra lateral */
+(() => {
+  let t = 0;
+  const sync = () => {
+    try { window.chorus.getSidebarState().then((v) => document.body.classList.toggle('side-hidden', !!v)); } catch (e) {}
+    try { window.chorus.sidebarWidthGet().then((w) => document.documentElement.style.setProperty('--sbw', w + 'px')); } catch (e) {}
+  };
+  window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(sync, 150); });
+})();
+</script>
 </body>
 </html>
 

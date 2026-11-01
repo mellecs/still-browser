@@ -1,0 +1,125 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: 'Inter'; font-style: normal; font-weight: 100 900; src: url('fonts/inter-latin-ext-wght-normal.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+  @font-face { font-family: 'Inter'; font-style: normal; font-weight: 100 900; src: url('fonts/inter-latin-wght-normal.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+  :root { --bg: #292a2d; --hover: #3a3b3f; --border: #3c3d40; --text: #ffffff; --muted: #c4c7c5; --accent: #5b9bff; }
+  html, body { margin: 0; background: transparent; overflow: hidden;
+    font: 13px 'Inter', 'Segoe UI', system-ui, sans-serif; color: var(--text); user-select: none; }
+  body { padding: 8px; }
+  #panel { box-sizing: border-box; padding: 10px; border-radius: 16px; background: var(--bg);
+    border: 1px solid var(--border); box-shadow: 0 2px 6px rgba(0,0,0,0.4) /* SOMBRA_AJUSTADA */; }
+  .top { display: flex; align-items: center; justify-content: space-between; padding: 2px 4px 10px; gap: 10px; }
+  .host { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .st { display: flex; align-items: center; gap: 6px; color: var(--muted); white-space: nowrap; }
+  .st.insecure { color: #ff8a65; }
+  .st svg { width: 15px; height: 15px; display: block; stroke-width: 1.8; }
+  .st { line-height: 1; }
+  .st > span { display: flex; align-items: center; line-height: 1; }
+  svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .card { display: flex; gap: 12px; align-items: flex-start; padding: 12px; border-radius: 12px; background: var(--hover); margin-bottom: 8px; }
+  .card svg { width: 26px; height: 26px; flex: none; color: var(--accent); margin-top: 1px; }
+  .card.insecure svg { color: #ff8a65; }
+  .card b { display: block; margin-bottom: 3px; font-weight: 600; }
+  .card span { color: var(--muted); line-height: 1.4; }
+  .opt { display: block; width: 100%; text-align: left; height: 36px; padding: 0 10px; border: 0; border-radius: 8px;
+    background: transparent; color: var(--text); font: inherit; cursor: pointer; }
+  .opt:hover { background: var(--hover); }
+  .opt:disabled { color: var(--muted); cursor: default; background: transparent; }
+/* PERMISOS_SITIO */
+  .pbox { margin: 0 0 8px; padding: 6px 4px 8px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .sec { padding: 4px 6px 6px; color: var(--muted); font-size: 12px; }
+  .prow { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px; min-height: 44px; border-radius: 10px; }
+  .prow:hover { background: var(--hover); }
+  .plab { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .pn { font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ps { font-size: 12px; color: var(--muted); }
+  .ps.ok { color: #7bd88f; }
+  .ps.no { color: #ff8a65; }
+  .prem { flex: none; height: 28px; padding: 0 14px; border: 0; border-radius: 14px; background: color-mix(in srgb, var(--text) 12%, transparent); color: var(--text); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+  .prem:hover { background: color-mix(in srgb, var(--text) 20%, transparent); }
+</style>
+</head>
+<body>
+<div id="panel"></div>
+<script>
+  const api = window.spApi;
+  const panel = document.getElementById('panel');
+  let es = true, lastH = 0;
+  const T = (a, b) => (es ? a : b);
+  const applyTheme = (th) => { try { const r = document.documentElement.style; Object.keys(th || {}).forEach((k) => r.setProperty('--' + k, th[k])); } catch (e) {} };
+  function el(tag, cls, text) {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  const LOCK_C = '<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
+  const LOCK_O = '<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 7.5-1.9"/></svg>';
+  function build(d) {
+    es = d.es !== false;
+    applyTheme(d.theme);
+    panel.textContent = '';
+    const top = el('div', 'top');
+    top.appendChild(el('span', 'host', d.kind === 'internal' ? 'Still' : d.host));
+    if (d.kind !== 'internal') {
+      const st = el('span', 'st ' + d.kind);
+      const ic = document.createElement('span');
+      ic.innerHTML = d.kind === 'secure' ? LOCK_C : LOCK_O;
+      st.appendChild(ic);
+      st.appendChild(el('span', '', d.kind === 'secure' ? T('Conexi\u00f3n segura', 'Secure connection') : T('Conexi\u00f3n no segura', 'Not secure')));
+      top.appendChild(st);
+    }
+    panel.appendChild(top);
+    const card = el('div', 'card ' + (d.kind === 'insecure' ? 'insecure' : ''));
+    const ic2 = document.createElement('div');
+    ic2.innerHTML = d.kind === 'insecure' ? LOCK_O : LOCK_C;
+    card.appendChild(ic2.firstChild);
+    const tx = document.createElement('div');
+    if (d.kind === 'secure') {
+      tx.appendChild(el('b', '', T('Conexi\u00f3n protegida', 'Protected connection')));
+      tx.appendChild(el('span', '', T('La informaci\u00f3n que env\u00edas a este sitio viaja cifrada (HTTPS).', 'The information you send to this site is encrypted (HTTPS).')));
+    } else if (d.kind === 'insecure') {
+      tx.appendChild(el('b', '', T('Conexi\u00f3n no protegida', 'Connection not protected')));
+      tx.appendChild(el('span', '', T('Este sitio no usa HTTPS: lo que escribas aqu\u00ed podr\u00eda verse. No introduzcas contrase\u00f1as.', 'This site does not use HTTPS: what you type here could be seen. Do not enter passwords.')));
+    } else {
+      tx.appendChild(el('b', '', T('P\u00e1gina de Still', 'Still page')));
+      tx.appendChild(el('span', '', T('Esta es una p\u00e1gina interna del navegador.', 'This is an internal browser page.')));
+    }
+    card.appendChild(tx);
+    panel.appendChild(card);
+    // PERMISOS_SITIO2: seccion de permisos debajo de la tarjeta
+    if (d.kind !== 'internal' && d.perms && d.perms.length) {
+      const box = el('div', 'pbox');
+      box.appendChild(el('div', 'sec', T('Permisos', 'Permissions')));
+      d.perms.forEach((p) => {
+        const row = el('div', 'prow');
+        const lab = el('span', 'plab');
+        lab.appendChild(el('span', 'pn', p.label));
+        lab.appendChild(el('span', 'ps ' + (p.allowed ? 'ok' : 'no'), p.allowed ? T('Permitido', 'Allowed') : T('Bloqueado', 'Blocked')));
+        row.appendChild(lab);
+        const rm = el('button', 'prem', T('Quitar', 'Remove'));
+        rm.onclick = () => api.removePerm(p.key);
+        row.appendChild(rm);
+        box.appendChild(row);
+      });
+      panel.appendChild(box);
+    }
+    if (d.kind !== 'internal') {
+      const b1 = el('button', 'opt', T('Limpiar cookies y datos del sitio', 'Clear cookies and site data'));
+      b1.onclick = () => { api.clear(); b1.textContent = T('Datos borrados', 'Data cleared'); b1.disabled = true; };
+      panel.appendChild(b1);
+    }
+    const b2 = el('button', 'opt', T('Ajustes de privacidad', 'Privacy settings'));
+    b2.onclick = () => api.settings();
+    panel.appendChild(b2);
+    const h = Math.ceil(panel.getBoundingClientRect().height) + 16;
+    if (h !== lastH) { lastH = h; api.size(h); }
+  }
+  api.onData(build);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') api.close(); });
+</script>
+</body>
+</html>

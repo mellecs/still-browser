@@ -151,6 +151,7 @@ function render() {
     c.appendChild(options(state.engines, state.searchEngine, (v) => setting('searchEngine', v)));
   } else if (current === 'privacy') {
     c.appendChild(row(t('fp'), t('fpDesc'), toggle(state.fingerprint, (v) => setting('fingerprint', v))));
+    c.appendChild(row(lang === 'es' ? 'DNS cifrado (DoH)' : 'Encrypted DNS (DoH)', lang === 'es' ? 'Usa servidores DNS cifrados (Cloudflare y Quad9) en vez del DNS de tu red. Si usas Pi-hole, el DNS de tu router o una VPN, d\u00e9jalo apagado para que sigan funcionando. Se aplica al momento.' : 'Uses encrypted DNS servers (Cloudflare and Quad9) instead of your network DNS. If you use Pi-hole, your router DNS or a VPN, leave it off so they keep working. Applies immediately.', toggle(state.secureDns === true, (v) => setting('secureDns', v)))); // DNS_OPCION
     c.appendChild(row(t('coe'), t('coeDesc'), toggle(state.clearOnExit === true, (v) => setting('clearOnExit', v))));
     const ckd = el('p', 'desc', t('ckDesc')); ckd.style.marginTop = '18px'; c.appendChild(ckd);
     c.appendChild(options([
@@ -180,12 +181,145 @@ function render() {
       c.appendChild(row(t('stPageUrl'), t('stPageHint'), inp));
     }
   } else if (current === 'appearance') { // APARIENCIA_PESTANA
+    c.appendChild(row(lang === 'es' ? 'Icono de Ghostery en el bloqueador' : 'Ghostery icon on the ad blocker', lang === 'es' ? 'Muestra el fantasma de Ghostery en monocromo en la barra. Ap\u00e1galo para volver al icono por defecto.' : 'Shows the Ghostery ghost in monochrome in the toolbar. Turn it off to go back to the default icon.', toggle(state.adblockIcon !== 'default', (v) => setting('adblockIcon', v ? 'ghostery' : 'default')))); // ADBLOCK_ICONO
     c.appendChild(row(lang === 'es' ? 'Marco redondeado alrededor de la p\u00e1gina' : 'Rounded frame around the page', lang === 'es' ? 'Deja un margen con esquinas redondeadas alrededor del contenido web. Se aplica al momento.' : 'Leaves a margin with rounded corners around the web content. Applies immediately.', toggle(state.roundedFrame !== false, (v) => setting('roundedFrame', v)))); // MARCO_AJUSTE
     const es = (lang === 'es');
-    c.appendChild(row(es ? 'Modo compacto' : 'Compact mode', es ? 'Hace m\u00e1s bajas la barra de pesta\u00f1as y la de direcciones.' : 'Makes the tab bar and the address bar shorter.', toggle(state.compact === true, (v) => setting('compact', v)))); // MODO_COMPACTO
+{ // DISENO_BARRAS
+  const opciones = [
+    ['clasica', es ? 'Cl\u00e1sica' : 'Classic'],
+    ['compacto', es ? 'Compacto' : 'Compact'],
+    ['vertical', 'Vertical']
+  ];
+  const actual = state.verticalTabs === true ? 'vertical' : (state.compact === true ? 'compacto' : 'clasica');
+  const grupo = document.createElement('div');
+  grupo.style.cssText = 'display:flex;gap:6px;flex:none';
+  const botones = {};
+  const marcar = (id) => { Object.keys(botones).forEach((k) => { botones[k].style.boxShadow = (k === id) ? 'inset 0 0 0 2px var(--t-accent,#9e9e9e)' : 'none'; }); };
+  opciones.forEach((o) => {
+    const b = document.createElement('button');
+    b.className = 'btn';
+    b.textContent = o[1];
+    b.onclick = () => {
+      marcar(o[0]);
+      setting('compact', o[0] === 'compacto');
+      setting('verticalTabs', o[0] === 'vertical');
+    };
+    botones[o[0]] = b;
+    grupo.appendChild(b);
+  });
+  marcar(actual);
+  c.appendChild(row(es ? 'Dise\u00f1o de las barras' : 'Bar layout', es ? 'Cl\u00e1sica, compacta o con las pesta\u00f1as en una barra lateral. Se aplica al momento.' : 'Classic, compact or with the tabs in a sidebar. Applies immediately.', grupo));
+}
     c.appendChild(row(es ? 'Mostrar el icono de extensiones' : 'Show the extensions icon', es ? 'El bot\u00f3n con forma de puzle que abre la lista de extensiones.' : 'The puzzle button that opens the list of extensions.', toggle(state.showExtButton !== false, (v) => setting('showExtButton', v)))); // EXT_PIN
-    c.appendChild(row(es ? 'Mostrar las extensiones fijadas en la barra' : 'Show pinned extensions in the toolbar', es ? 'Los iconos de las extensiones que has fijado, junto a la barra de direcciones.' : 'The icons of the extensions you pinned, next to the address bar.', toggle(state.showExtensions !== false, (v) => setting('showExtensions', v)))); // EXTENSIONES_APARIENCIA
-    c.appendChild(row(es ? 'Icono de descargas solo al descargar' : 'Show downloads icon only while downloading', es ? 'El icono aparece cuando empieza una descarga y se queda resaltado hasta que abres Descargas.' : 'The icon appears when a download starts and stays highlighted until you open Downloads.', toggle(state.downloadsAuto === true, (v) => setting('downloadsAuto', v))));
+    
+/* FUENTE_AJUSTE_INICIO */ {
+  const esp = lang === 'es';
+  const fo = [
+    ['inter', 'Inter', "'Inter UI', Inter, system-ui, sans-serif"],
+    ['arial', 'Arial', 'Arial, Helvetica, sans-serif'],
+    ['segoe', 'Segoe UI', "'Segoe UI', system-ui, sans-serif"],
+    ['verdana', 'Verdana', 'Verdana, Geneva, sans-serif'],
+    ['tahoma', 'Tahoma', 'Tahoma, Geneva, sans-serif'],
+    ['trebuchet', 'Trebuchet MS', "'Trebuchet MS', Helvetica, sans-serif"],
+    ['georgia', 'Georgia', "Georgia, 'Times New Roman', serif"],
+    ['sitio', esp ? 'Predeterminada del sitio' : 'Site default', 'inherit']
+  ];
+  if (!document.getElementById('ff-css')) {
+    const st = document.createElement('style');
+    st.id = 'ff-css';
+    st.textContent = `
+@font-face{font-family:'Inter UI';font-style:normal;font-weight:100 900;font-display:swap;src:url('node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2') format('woff2')}
+.ff-wrap{position:relative;display:inline-block}
+.ff-btn{display:flex;align-items:center;justify-content:space-between;gap:14px;min-width:210px;padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.05);color:inherit;font-size:14px;cursor:pointer;transition:background .12s,border-color .12s}
+.ff-btn:hover{background:rgba(255,255,255,0.09)}
+.ff-wrap.open .ff-btn{border-color:rgba(255,255,255,0.28)}
+.ff-btn svg{width:14px;height:14px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;opacity:.7;transition:transform .15s}
+.ff-wrap.open .ff-btn svg{transform:rotate(180deg)}
+.ff-list{display:none;position:fixed;z-index:9999;min-width:210px;padding:6px;border-radius:12px;border:1px solid rgba(255,255,255,0.12);box-shadow:0 12px 32px rgba(0,0,0,0.45)}
+.ff-wrap.open .ff-list{display:block}
+.ff-opt{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:8px 10px;border-radius:8px;cursor:pointer;color:#f1f1f3;font-size:14px}
+.ff-opt:hover{background:rgba(255,255,255,0.10)}
+.ff-opt.sel{background:rgba(255,255,255,0.15)}
+.ff-opt svg{width:14px;height:14px;flex:none;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;visibility:hidden}
+.ff-opt.sel svg{visibility:visible}
+.ff-sep{height:1px;margin:5px 4px;background:rgba(255,255,255,0.10)}
+`;
+    document.head.appendChild(st);
+  }
+  const cur = { v: state.webFont || 'inter' };
+  const wrap = document.createElement('div');
+  wrap.className = 'ff-wrap';
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'ff-btn';
+  const lbl = document.createElement('span');
+  btn.appendChild(lbl);
+  btn.insertAdjacentHTML('beforeend', '<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>');
+  const list = document.createElement('div');
+  list.className = 'ff-list';
+  const cerrar = () => { wrap.classList.remove('open'); };
+  const pintar = () => {
+    const o = fo.find((x) => x[0] === cur.v) || fo[0];
+    lbl.textContent = o[1];
+    lbl.style.fontFamily = o[2];
+    list.querySelectorAll('.ff-opt').forEach((n) => n.classList.toggle('sel', n.dataset.v === cur.v));
+  };
+  fo.forEach((o, i) => {
+    if (i === fo.length - 1) { const sp = document.createElement('div'); sp.className = 'ff-sep'; list.appendChild(sp); }
+    const it = document.createElement('div');
+    it.className = 'ff-opt';
+    it.dataset.v = o[0];
+    const t = document.createElement('span');
+    t.textContent = o[1];
+    t.style.fontFamily = o[2];
+    it.appendChild(t);
+    it.insertAdjacentHTML('beforeend', '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>');
+    it.onclick = (ev) => {
+      ev.stopPropagation();
+      cur.v = o[0];
+      pintar();
+      cerrar();
+      try { window.settingsApi.setFont(o[0]).then((s) => { if (s) state.webFont = s.webFont; }); } catch (e) {}
+    };
+    list.appendChild(it);
+  });
+  const fondo = () => {
+    for (const n of [document.body, document.documentElement]) {
+      const b = getComputedStyle(n).backgroundColor;
+      if (b && b !== 'transparent' && !/rgba\(\s*0,\s*0,\s*0,\s*0\s*\)/.test(b)) return b;
+    }
+    return '#26272a';
+  };
+  btn.onclick = (ev) => {
+    ev.stopPropagation();
+    if (wrap.classList.contains('open')) { cerrar(); return; }
+    list.style.backgroundColor = fondo();
+    list.style.backgroundImage = 'linear-gradient(rgba(255,255,255,0.09),rgba(255,255,255,0.09))';
+    wrap.classList.add('open');
+    const r = btn.getBoundingClientRect();
+    const h = list.offsetHeight, w = list.offsetWidth;
+    const abajo = window.innerHeight - r.bottom;
+    list.style.top = ((abajo >= h + 12 || r.top < h + 12) ? r.bottom + 6 : r.top - h - 6) + 'px';
+    list.style.left = Math.max(8, Math.min(r.right - w, window.innerWidth - w - 8)) + 'px';
+  };
+  try { if (window.__ffOff) window.__ffOff(); } catch (e) {}
+  const kd = (e) => { if (e.key === 'Escape') cerrar(); };
+  document.addEventListener('click', cerrar);
+  document.addEventListener('keydown', kd);
+  window.addEventListener('scroll', cerrar, true);
+  window.addEventListener('resize', cerrar);
+  window.__ffOff = () => {
+    document.removeEventListener('click', cerrar);
+    document.removeEventListener('keydown', kd);
+    window.removeEventListener('scroll', cerrar, true);
+    window.removeEventListener('resize', cerrar);
+  };
+  wrap.appendChild(btn);
+  wrap.appendChild(list);
+  pintar();
+  c.appendChild(row(esp ? 'Tipograf\u00eda' : 'Font', esp ? 'La letra que usan las p\u00e1ginas web y la interfaz del navegador. Se aplica al momento.' : 'The font used by web pages and the browser interface. Applies immediately.', wrap));
+} /* FUENTE_AJUSTE_FIN */
+    if (state.verticalTabs !== true) c.appendChild(row(es ? 'Icono de descargas solo al descargar' : 'Show downloads icon only while downloading', es ? 'El icono aparece cuando empieza una descarga y se queda resaltado hasta que abres Descargas.' : 'The icon appears when a download starts and stays highlighted until you open Downloads.', toggle(state.downloadsAuto === true, (v) => setting('downloadsAuto', v))));
   } else if (current === 'system') {
     c.appendChild(row(t('hw'), t('hwDesc'), toggle(state.hardwareAcceleration, (v) => setting('hardwareAcceleration', v))));
     c.appendChild(row(lang === 'es' ? 'Preguntar d\u00f3nde guardar cada archivo' : 'Ask where to save each file', lang === 'es' ? 'Antes de cada descarga se abre la ventana de Windows para elegir carpeta y nombre.' : 'Before each download, Windows shows a window to choose the folder and name.', toggle(state.askSaveDownloads === true, (v) => setting('askSaveDownloads', v)))); // PREGUNTAR_DONDE_GUARDAR
