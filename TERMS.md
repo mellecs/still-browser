@@ -53,4 +53,4 @@ These terms are governed by Spanish law. If you are a consumer, the rights and j
 
 ## 11. Changes and contact
 
-We may modify these terms. The version in force is the one on this page, with its update date. For any question, write to [aaronmellewebs@gmail.com] or open an issue on [GitHub](https://github.com/mellecs/still-browser/issues).
+We may modify these terms. The version in force is the one on this page, with its update date. For any question, write to [stillbrowser01@gmail.com] or open an issue on [GitHub](https://github.com/mellecs/still-browser/issues).
