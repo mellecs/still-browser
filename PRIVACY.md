@@ -6,7 +6,7 @@ _Last updated: October 17, 2026 · App version: 2.2.0 · [Versión en español](
 
 ## 1. Who is responsible
 
-Still Browser is a desktop browser developed by Melle (GitHub: [mellecs](https://github.com/mellecs)). For any privacy question, write to [aaronmellewebs@gmail.com] or open an issue at [github.com/mellecs/still-browser/issues](https://github.com/mellecs/still-browser/issues).
+Still Browser is a desktop browser developed by Melle (GitHub: [mellecs](https://github.com/mellecs)). For any privacy question, write to [stillbrowser01@gmail.com] or open an issue at [github.com/mellecs/still-browser/issues](https://github.com/mellecs/still-browser/issues).
 
 ## 2. Data stored on your computer
 
